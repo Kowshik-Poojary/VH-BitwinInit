@@ -149,9 +149,19 @@ export default function AdminDashboard() {
           recent.map((run) => (
             <li key={run._id} className="activity-item">
               <ConclusionBadge conclusion={run.conclusion} />
-              <span className="activity-repo">{run.repo}</span>
+              <Link
+                to={`/admin/repos/${encodeURIComponent(run.repo)}`}
+                className="activity-repo"
+              >
+                {run.repo}
+              </Link>
               {run.pr_number != null && (
-                <span className="activity-pr">PR #{run.pr_number}</span>
+                <Link
+                  to={`/admin/repos/${encodeURIComponent(run.repo)}/prs/${run.pr_number}`}
+                  className="activity-pr"
+                >
+                  PR #{run.pr_number}
+                </Link>
               )}
               <span className="activity-summary">
                 {run.summary.total} finding(s)

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
 import ScanPage from "./pages/ScanPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import RepoDetail from "./pages/RepoDetail";
+import PRDetail from "./pages/PRDetail";
 import "./App.css";
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/" element={<ScanPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/repos/:repo" element={<RepoDetail />} />
+            <Route path="/admin/repos/:repo/prs/:prNumber" element={<PRDetail />} />
           </Routes>
         </main>
       </div>

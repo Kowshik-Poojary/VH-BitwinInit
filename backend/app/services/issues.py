@@ -86,22 +86,40 @@ def get_repo_logs(repo: str) -> list[dict]:
     return runs
 
 
-def get_repo_issues(repo: str) -> dict:
+def get_pr_logs(repo: str, pr_number: int) -> list[dict]:
     db = get_db()
-    latest_run = db["action_runs"].find_one(
-        {"repo": repo}, sort=[("received_at", -1)]
+    runs = list(
+        db["action_runs"]
+        .find({"repo": repo, "pr_number": pr_number})
+        .sort("received_at", -1)
     )
-    if not latest_run:
-        return {"latest_run_id": None, "issues": []}
+    for run in runs:
+        run["_id"] = str(run["_id"])
+        run["user"] = get_user(run.get("user_id"))
+        run["finding_count"] = len(run.get("findings", []))
+        run.pop("findings", None)
+    return runs
 
-    latest_run_id = str(latest_run["_id"])
+
+def _issues_for_run(repo: str, run: dict) -> dict:
+    """New-vs-pre-existing breakdown of one run's findings.
+
+    A finding is "new" only if this exact run is the one that first
+    introduced its fingerprint anywhere in the repo (tracked in
+    `repo_issues`, keyed by repo+fingerprint independent of PR/push). A
+    finding that pre-dates this run — even if this is the first time *this*
+    PR's branch happens to contain it — is reported "pre-existing" along
+    with whoever's run first surfaced it.
+    """
+    db = get_db()
+    run_id = str(run["_id"])
     issues = []
-    for finding in latest_run.get("findings", []):
+    for finding in run.get("findings", []):
         fp = fingerprint(finding)
         record = db["repo_issues"].find_one({"_id": f"{repo}::{fp}"})
-        is_new = bool(record) and record.get("first_seen_run_id") == latest_run_id
+        is_new = bool(record) and record.get("first_seen_run_id") == run_id
         first_seen_user = get_user(
-            record.get("first_seen_user_id") if record else latest_run.get("user_id")
+            record.get("first_seen_user_id") if record else run.get("user_id")
         )
         issues.append(
             {
@@ -111,9 +129,72 @@ def get_repo_issues(repo: str) -> dict:
                 "message": finding.get("message"),
                 "location": finding.get("location"),
                 "is_new": is_new,
-                "first_seen_at": record.get("first_seen_at") if record else latest_run.get("received_at"),
+                "first_seen_at": record.get("first_seen_at") if record else run.get("received_at"),
                 "first_seen_user": first_seen_user,
             }
         )
 
-    return {"latest_run_id": latest_run_id, "issues": issues}
+    return {
+        "run_id": run_id,
+        "pr_number": run.get("pr_number"),
+        "conclusion": run.get("conclusion"),
+        "received_at": run.get("received_at"),
+        "user": get_user(run.get("user_id")),
+        "issues": issues,
+    }
+
+
+def get_repo_issues(repo: str) -> dict:
+    db = get_db()
+    latest_run = db["action_runs"].find_one(
+        {"repo": repo}, sort=[("received_at", -1)]
+    )
+    if not latest_run:
+        return {"latest_run_id": None, "issues": []}
+
+    result = _issues_for_run(repo, latest_run)
+    result["latest_run_id"] = result["run_id"]
+    return result
+
+
+def get_repo_prs(repo: str) -> list[dict]:
+    """One row per PR number that has ever reported a run for this repo."""
+    db = get_db()
+    pipeline = [
+        {"$match": {"repo": repo, "pr_number": {"$ne": None}}},
+        {"$sort": {"received_at": -1}},
+        {
+            "$group": {
+                "_id": "$pr_number",
+                "run_count": {"$sum": 1},
+                "last_run_at": {"$first": "$received_at"},
+                "last_conclusion": {"$first": "$conclusion"},
+                "last_user_id": {"$first": "$user_id"},
+                "total_errors": {"$sum": "$summary.errors"},
+            }
+        },
+        {"$sort": {"last_run_at": -1}},
+    ]
+    rows = []
+    for row in db["action_runs"].aggregate(pipeline):
+        rows.append(
+            {
+                "pr_number": row["_id"],
+                "run_count": row["run_count"],
+                "last_run_at": row["last_run_at"],
+                "last_conclusion": row["last_conclusion"],
+                "last_user": get_user(row["last_user_id"]),
+                "total_errors": row["total_errors"],
+            }
+        )
+    return rows
+
+
+def get_pr_issues(repo: str, pr_number: int) -> dict:
+    db = get_db()
+    latest_run = db["action_runs"].find_one(
+        {"repo": repo, "pr_number": pr_number}, sort=[("received_at", -1)]
+    )
+    if not latest_run:
+        return {"latest_run_id": None, "pr_number": pr_number, "issues": []}
+    return _issues_for_run(repo, latest_run)

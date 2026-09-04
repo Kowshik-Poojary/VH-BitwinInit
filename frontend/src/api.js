@@ -42,3 +42,19 @@ export function getRepoLogs(repo) {
 export function getRepoIssues(repo) {
   return request(`/api/admin/repos/${encodeURIComponent(repo)}/issues`);
 }
+
+export function getRepoPRs(repo) {
+  return request(`/api/admin/repos/${encodeURIComponent(repo)}/prs`);
+}
+
+export function getPRLogs(repo, prNumber) {
+  return request(
+    `/api/admin/repos/${encodeURIComponent(repo)}/prs/${prNumber}/logs`
+  );
+}
+
+export function getPRIssues(repo, prNumber) {
+  return request(
+    `/api/admin/repos/${encodeURIComponent(repo)}/prs/${prNumber}/issues`
+  );
+}
