@@ -1,0 +1,22 @@
+{
+  "resources": [
+    {
+      "call": "open",
+      "resource_type": "File",
+      "cleanup": "close",
+      "managed": true
+    },
+    {
+      "call": "sqlite3.connect",
+      "resource_type": "SQLite connection",
+      "cleanup": "close",
+      "managed": true
+    },
+    {
+      "call": "socket.socket",
+      "resource_type": "Socket",
+      "cleanup": "close",
+      "managed": true
+    }
+  ]
+}
