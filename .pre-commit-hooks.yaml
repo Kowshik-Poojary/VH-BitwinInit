@@ -1,0 +1,7 @@
+- id: leakguard
+  name: LeakGuard (resource leak scan)
+  description: Blocks commits containing unclosed-resource leaks (files, sockets, DB connections, tempfiles).
+  entry: leakguard scan --fail-on error
+  language: python
+  types: [python]
+  pass_filenames: true

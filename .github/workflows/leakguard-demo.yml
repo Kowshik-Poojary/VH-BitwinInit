@@ -1,0 +1,26 @@
+name: LeakGuard Leaky Demo CI Failure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  leakguard-fail-demo:
+    name: Block Build on Leaks Demo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run LeakGuard on Leaky Samples (Expected to Fail CI)
+        uses: ./
+        with:
+          path: "samples/leaky_demo"
+          format: "sarif"
+          output: "leaks.sarif"
+          fail-on: "error"
+
+      - name: Upload SARIF to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "leaks.sarif"

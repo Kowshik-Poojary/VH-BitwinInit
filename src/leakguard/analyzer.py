@@ -21,6 +21,8 @@ from leakguard.models import (
 from leakguard.parser import parse_python_source, read_python_source
 from leakguard.scanner import ScanConfig, discover_python_files
 from leakguard.visitor import ProjectASTVisitor
+from leakguard.cfg import build_cfg
+from leakguard.lifecycle import lifecycle_findings
 
 
 def _path_to_module(file_path: Path, project_root: Path) -> str:
@@ -243,15 +245,13 @@ def analyze_project(
     exclude_patterns: list[str] | None = None,
     max_file_size: int | None = None,
 ) -> list[Finding]:
-    """Public API: analyze a project and return findings.
-
-    Currently returns diagnostic findings for analysis errors.
-    Resource leak classification will be added by the lifecycle engine.
-    """
+    """Public API: analyze a project and return diagnostic and leak findings."""
     project = analyze_project_structure(
         path,
         exclude_dirs=exclude_dirs,
         exclude_patterns=exclude_patterns,
         max_file_size=max_file_size,
     )
-    return _errors_to_findings(project.errors)
+    findings = _errors_to_findings(project.errors)
+    findings.extend(lifecycle_findings(project, build_cfg(project)))
+    return findings

@@ -56,4 +56,12 @@ class ImportResolver:
             if resolved:
                 return resolved
             return f"{base}.{attribute}"
+        if function_name:
+            if function_name in self._from_import_map:
+                imp = self._from_import_map[function_name]
+                module = imp.module or ""
+                return f"{module}.{imp.imported_name}" if module else imp.imported_name
+            if function_name in self._alias_map:
+                imp = self._alias_map[function_name]
+                return imp.module or imp.imported_name
         return function_name

@@ -1,13 +1,16 @@
 [project]
 name = "leakguard"
 version = "0.1.0"
-description = "Add your description here"
+description = "Production-oriented Python resource leak static analyzer"
 readme = "README.md"
 authors = [
     { name = "Kowshik-Poojary", email = "chandrapoojary1975@gmail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.10"
 dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pre-commit>=3.0"]
 
 [project.scripts]
 leakguard = "leakguard.cli:main"
@@ -15,3 +18,6 @@ leakguard = "leakguard.cli:main"
 [build-system]
 requires = ["uv_build>=0.12.9,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

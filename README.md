@@ -132,6 +132,19 @@ leakguard scan <path> [--format text|sarif|json] [--output FILE] [--fail-on erro
   ```
 - Then in `.github/workflows/leakguard-selftest.yml` we consume our own Action against the seeded sample repo (Phase E) so the demo shows a **real red X** on a real PR.
 
+### Phase D.1 — Local pre-commit hook (blocks the user before commit, not just CI)
+
+CI alone only catches leaks *after* a push/PR — it doesn't stop a developer from committing them locally. LeakGuard ships as a real [pre-commit](https://pre-commit.com) hook, defined in `.pre-commit-hooks.yaml` at repo root, and wired up for this repo itself in `.pre-commit-config.yaml` (`repo: local`, running the installed `leakguard` console script against staged `.py` files with `--fail-on error`).
+
+Setup:
+
+```bash
+pip install -e ".[dev]"
+pre-commit install
+```
+
+Once installed, every `git commit` runs `leakguard scan` against the staged Python files and **aborts the commit** if any blocking-severity (`error`) leak is found — matching the same `--fail-on error` threshold used in CI, so local and CI behavior stay consistent. Any repo can also depend on this one directly as a pre-commit hook (`repo: <this-repo-url>`, `hooks: [{id: leakguard}]`) since `.pre-commit-hooks.yaml` publishes it as a reusable hook.
+
 ### Phase E — Seeded sample repo (1.5h)
 
 New folder: `samples/leaky_demo/` (5–10 files, 8+ deliberate leaks + 4 correct-looking-but-safe controls for FP testing):
@@ -208,3 +221,4 @@ Before demo, run each of these and confirm expected behaviour:
 - Auto-fix patches (stretch — only if Phases A–F land with >4h remaining).
 - Async generators, coroutines beyond `async with`.
 - Second language (Java/Go).
+
