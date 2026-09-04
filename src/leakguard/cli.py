@@ -15,6 +15,7 @@ from leakguard.reporter import (
     render_json,
     render_sarif,
     render_text,
+    report_run_to_backend,
 )
 
 
@@ -44,6 +45,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--comment-pr",
         action="store_true",
         help="Post inline review comments to GitHub PR when GITHUB_TOKEN is available",
+    )
+    scan_parser.add_argument(
+        "--report-url",
+        type=str,
+        default=os.environ.get("LEAKGUARD_REPORT_URL", ""),
+        help="Base URL of the LeakGuard web backend to report this run's summary to (admin dashboard)",
     )
     analyze_parser.add_argument(
         "--format",
@@ -118,7 +125,12 @@ def _run_scan(args: argparse.Namespace) -> int:
         "warning": {"ERROR", "WARNING"},
         "any": {"ERROR", "WARNING", "INFO"},
     }[args.fail_on]
-    return 1 if any(finding.severity.value in blocking for finding in findings) else 0
+    is_blocked = any(finding.severity.value in blocking for finding in findings)
+
+    if args.report_url:
+        report_run_to_backend(findings, args.report_url, is_blocked)
+
+    return 1 if is_blocked else 0
 
 
 def _run_analyze(args: argparse.Namespace) -> int:

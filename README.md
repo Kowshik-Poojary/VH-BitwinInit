@@ -222,3 +222,64 @@ Before demo, run each of these and confirm expected behaviour:
 - Async generators, coroutines beyond `async with`.
 - Second language (Java/Go).
 
+---
+
+## Web Dashboard (MVP)
+
+Two web-facing pieces sit on top of the CLI, sharing the same `leakguard` package in-process — no Docker needed for the backend.
+
+- **Scan by URL** (`/`): paste a public GitHub repo URL. The backend shallow-clones it (credential-stripped — see below) and streams real progress from the actual analyzer pipeline over SSE (`GET /api/scan/stream`) into a terminal-style live log: cloning, file discovery, per-file analysis, CFG build, lifecycle analysis — then shows results grouped by file with a rule breakdown and expandable path traces.
+- **Admin dashboard** (`/admin`): repos tracked, total/PR runs, findings, and all demo users, fed by the GitHub Action reporting each run back via `--report-url` / `report-url` action input. Each repo links to a detail page showing its full run log and current issues, each tagged **new (this run)** vs **pre-existing** with who first reported it — findings are fingerprinted per repo by `(rule_id, file, line)` so identity persists across runs.
+
+**No auth on any of this yet** — the admin dashboard and the `/api/reports/action-run` callback are both open. Fine for an MVP/hackathon demo, not for a real deployment.
+
+**Private repos are intentionally rejected** by scan-by-URL: `_clone_repo` explicitly strips any local git credential helper (`-c credential.helper=`) and disables terminal prompts, so it only ever works for genuinely public repos — even if the machine running the backend happens to have your own GitHub credentials cached.
+
+### Demo data
+
+`python backend/scripts/seed_demo_data.py` seeds 10 demo users and realistic multi-run history for two demo repos directly into MongoDB (via the same ingestion path the real Action report endpoint uses), so the dashboard has something to show without needing real CI traffic.
+
+### Backend (`backend/`)
+
+```bash
+pip install -e .                        # leakguard package, editable
+pip install -r backend/requirements.txt
+```
+
+Create `backend/.env` (git-ignored) with:
+
+```
+MONGODB_URI=<your MongoDB connection string>
+```
+
+Then run:
+
+```bash
+cd backend
+uvicorn app.main:app --port 8000
+```
+
+Note: `--reload` has been unreliable in testing on Windows (WatchFiles sometimes silently misses an edit and keeps serving stale code) — if you use it and a change doesn't seem to take effect, kill and restart the process manually rather than trusting the reloader.
+
+### Frontend (`frontend/`)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Copy `.env.example` to `.env` to point it at a non-default backend URL.
+
+### Wiring a repo's Action to report into the dashboard
+
+Set the `report-url` input on the LeakGuard Action to your backend's base URL:
+
+```yaml
+- uses: ./
+  with:
+    path: "."
+    report-url: "https://your-backend.example.com"
+```
+
+Every `leakguard scan` run then POSTs a summary (repo, PR number, pass/fail, finding counts) to `/api/reports/action-run`. This is best-effort — a backend outage never fails the CI run.

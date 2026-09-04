@@ -215,6 +215,27 @@ def render_sarif(findings: list[Finding]) -> str:
     return json.dumps(sarif_log, indent=2)
 
 
+def _extract_pr_context(event_path: str | None = None) -> tuple[str | None, int | None]:
+    """Best-effort (repo_full_name, pr_number) from the GitHub Actions event payload."""
+    gh_event = event_path or os.environ.get("GITHUB_EVENT_PATH")
+    gh_repo = os.environ.get("GITHUB_REPOSITORY")
+
+    pr_number = None
+    repo_name = gh_repo
+    if gh_event:
+        try:
+            event_file = Path(gh_event)
+            if event_file.exists():
+                event_data = json.loads(event_file.read_text(encoding="utf-8"))
+                pr_number = event_data.get("pull_request", {}).get("number")
+                if not pr_number:
+                    pr_number = event_data.get("number")
+                repo_name = repo_name or event_data.get("repository", {}).get("full_name")
+        except Exception:
+            pass
+    return repo_name, pr_number
+
+
 def post_github_pr_review(
     findings: list[Finding],
     token: str | None = None,
@@ -223,22 +244,12 @@ def post_github_pr_review(
     """Post inline PR review comments when running in GitHub Actions environment."""
     gh_token = token or os.environ.get("GITHUB_TOKEN")
     gh_event = event_path or os.environ.get("GITHUB_EVENT_PATH")
-    gh_repo = os.environ.get("GITHUB_REPOSITORY")
 
     if not gh_token or not gh_event:
         return False
 
     try:
-        event_file = Path(gh_event)
-        if not event_file.exists():
-            return False
-
-        event_data = json.loads(event_file.read_text(encoding="utf-8"))
-        pr_number = event_data.get("pull_request", {}).get("number")
-        if not pr_number:
-            pr_number = event_data.get("number")
-
-        repo_name = gh_repo or event_data.get("repository", {}).get("full_name")
+        repo_name, pr_number = _extract_pr_context(gh_event)
         if not pr_number or not repo_name:
             return False
 
@@ -288,4 +299,56 @@ def post_github_pr_review(
             return resp.status in (200, 201)
     except Exception as exc:
         print(f"Note: GitHub PR review comment posting skipped: {exc}", file=sys.stderr)
+        return False
+
+
+def report_run_to_backend(
+    findings: list[Finding],
+    report_url: str,
+    blocked: bool,
+) -> bool:
+    """POST a summary of this run to the LeakGuard web backend's admin dashboard.
+
+    Best-effort only: a backend outage or misconfigured URL must never fail CI.
+    """
+    if not report_url:
+        return False
+
+    try:
+        repo_name, pr_number = _extract_pr_context()
+        if not repo_name:
+            return False
+
+        summary = {
+            "total": len(findings),
+            "errors": sum(1 for f in findings if f.severity == FindingSeverity.ERROR),
+            "warnings": sum(1 for f in findings if f.severity == FindingSeverity.WARNING),
+            "info": sum(1 for f in findings if f.severity not in (FindingSeverity.ERROR, FindingSeverity.WARNING)),
+        }
+        findings_payload = []
+        for f in findings:
+            d = f.to_dict()
+            d["location"]["file"] = _to_sarif_uri(f.location.file)
+            findings_payload.append(d)
+
+        payload = {
+            "repo": repo_name,
+            "pr_number": pr_number,
+            "sha": os.environ.get("GITHUB_SHA"),
+            "user_id": os.environ.get("LEAKGUARD_USER_ID"),
+            "conclusion": "fail" if blocked else "pass",
+            "summary": summary,
+            "findings": findings_payload,
+        }
+
+        req = urllib.request.Request(
+            report_url.rstrip("/") + "/api/reports/action-run",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.status in (200, 201)
+    except Exception as exc:
+        print(f"Note: reporting run to backend skipped: {exc}", file=sys.stderr)
         return False
