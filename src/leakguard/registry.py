@@ -44,12 +44,12 @@ RESOURCE_REGISTRY: dict[str, ResourceDefinition] = {
         context_manager_aware=False,
     ),
     "tempfile.NamedTemporaryFile": ResourceDefinition(
-        resource_type="file",
+        resource_type="tempfile",
         cleanup_methods=("close",),
         context_manager_aware=True,
     ),
     "tempfile.TemporaryFile": ResourceDefinition(
-        resource_type="file",
+        resource_type="tempfile",
         cleanup_methods=("close",),
         context_manager_aware=True,
     ),

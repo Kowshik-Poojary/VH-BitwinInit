@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any
 
 from leakguard.cfg import (
     BlockKind,
@@ -34,6 +35,8 @@ class LifecycleResult:
     acquire_line: int
     message: str
     path: list[int]
+    terminating_event: CFGEvent | None = None
+    path_trace: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _get_acquire_event(
@@ -146,10 +149,13 @@ def _classify_path(
     target: str,
     acquire_line: int,
     acquire_column: int,
-) -> ResourceState:
+    file_path: str = "",
+) -> tuple[ResourceState, CFGEvent | None, list[dict[str, Any]]]:
     started = False
     aliases = {target}
     passed_to_function = False
+    path_trace: list[dict[str, Any]] = []
+    terminating_event: CFGEvent | None = None
 
     for event in events:
         if event.kind == CFGEventKind.ACQUIRE and event.target == target:
@@ -157,11 +163,34 @@ def _classify_path(
                 if (event.line, event.column) != (acquire_line, acquire_column):
                     continue
                 started = True
+                path_trace.append({
+                    "file": file_path,
+                    "line": event.line,
+                    "column": event.column,
+                    "event": f"ACQUIRE {target}",
+                    "kind": event.kind.value,
+                })
                 continue
-            return ResourceState.OPEN
+            terminating_event = event
+            path_trace.append({
+                "file": file_path,
+                "line": event.line,
+                "column": event.column,
+                "event": f"REASSIGN {target}",
+                "kind": event.kind.value,
+            })
+            return ResourceState.OPEN, terminating_event, path_trace
 
         if not started:
             continue
+
+        path_trace.append({
+            "file": file_path,
+            "line": event.line,
+            "column": event.column,
+            "event": event.label,
+            "kind": event.kind.value,
+        })
 
         if (
             event.kind == CFGEventKind.CALL_PASS
@@ -174,7 +203,8 @@ def _classify_path(
             event.kind == CFGEventKind.RETURN
             and event.target in aliases
         ):
-            return ResourceState.ESCAPED
+            terminating_event = event
+            return ResourceState.ESCAPED, terminating_event, path_trace
 
         if event.kind == CFGEventKind.ASSIGN and event.target:
             if event.line == acquire_line and event.target == target:
@@ -193,11 +223,19 @@ def _classify_path(
             )
             and event.target in aliases
         ):
-            return ResourceState.CLOSED
+            return ResourceState.CLOSED, event, path_trace
+
+        if event.kind in (CFGEventKind.RETURN, CFGEventKind.RAISE) or (
+            event.kind == CFGEventKind.CONTROL_FLOW and event.label in ("RETURN", "RAISE")
+        ):
+            terminating_event = event
+
+    if not terminating_event and events:
+        terminating_event = events[-1]
 
     if passed_to_function:
-        return ResourceState.UNKNOWN
-    return ResourceState.OPEN
+        return ResourceState.UNKNOWN, terminating_event, path_trace
+    return ResourceState.OPEN, terminating_event, path_trace
 
 
 def _find_acquire_blocks(
@@ -239,6 +277,11 @@ def analyze_resource(
     )
 
     results: list[LifecycleResult] = []
+    file_path = (
+        function_cfg.function.location.file
+        if function_cfg.function and function_cfg.function.location
+        else ""
+    )
 
     for path in paths:
         events = _events_for_path(
@@ -246,11 +289,12 @@ def analyze_resource(
             path,
         )
 
-        state = _classify_path(
+        state, term_event, path_trace = _classify_path(
             events,
             target,
             acquire.line,
             acquire.column,
+            file_path=file_path,
         )
 
         results.append(
@@ -259,6 +303,8 @@ def analyze_resource(
                 acquire_line=acquire.line,
                 message=f"Resource {target} ends as {state.value}",
                 path=path,
+                terminating_event=term_event,
+                path_trace=path_trace,
             )
         )
 
@@ -274,10 +320,12 @@ def aggregate_resource_results(
     states = {result.state for result in results}
     if ResourceState.OPEN in states or ResourceState.LEAKED in states:
         return ResourceState.LEAKED
-    if states == {ResourceState.CLOSED}:
+    if states.issubset({ResourceState.CLOSED, ResourceState.ESCAPED}):
+        if ResourceState.CLOSED in states and ResourceState.ESCAPED not in states:
+            return ResourceState.CLOSED
+        if ResourceState.ESCAPED in states and ResourceState.CLOSED not in states:
+            return ResourceState.ESCAPED
         return ResourceState.CLOSED
-    if ResourceState.ESCAPED in states:
-        return ResourceState.ESCAPED
     return ResourceState.UNKNOWN
 
 
@@ -285,12 +333,16 @@ def resource_confidence(results: list[LifecycleResult]) -> str:
     if not results:
         return "LOW"
 
-    states = {result.state for result in results}
-    if ResourceState.UNKNOWN in states or ResourceState.ESCAPED in states:
-        return "LOW"
-    if ResourceState.OPEN in states and ResourceState.CLOSED in states:
+    leaks = {ResourceState.OPEN, ResourceState.LEAKED}
+    leak_count = sum(1 for r in results if r.state in leaks)
+    safe_count = sum(1 for r in results if r.state in (ResourceState.CLOSED, ResourceState.ESCAPED))
+    unknown_count = sum(1 for r in results if r.state == ResourceState.UNKNOWN)
+
+    if leak_count > 0 and safe_count == 0 and unknown_count == 0:
+        return "HIGH"
+    if leak_count > 0 and (safe_count > 0 or unknown_count > 0):
         return "MEDIUM"
-    return "HIGH"
+    return "LOW"
 
 
 def lifecycle_findings(
@@ -302,6 +354,7 @@ def lifecycle_findings(
         "file": "LKG-R001",
         "socket": "LKG-R002",
         "database": "LKG-R003",
+        "tempfile": "LKG-R004",
     }
 
     for file_cfg in cfg_project.files:
@@ -317,7 +370,7 @@ def lifecycle_findings(
                     acquire.column,
                 )
                 state = aggregate_resource_results(results)
-                if state == ResourceState.CLOSED:
+                if state in (ResourceState.CLOSED, ResourceState.ESCAPED):
                     continue
 
                 status = {
@@ -326,6 +379,24 @@ def lifecycle_findings(
                     ResourceState.UNKNOWN: FindingStatus.UNKNOWN,
                 }.get(state, FindingStatus.UNKNOWN)
                 resource_type = acquire.resource_type or "resource"
+
+                leaking_result = next(
+                    (r for r in results if r.state in (ResourceState.OPEN, ResourceState.LEAKED)),
+                    None,
+                )
+                if leaking_result and leaking_result.terminating_event:
+                    term = leaking_result.terminating_event
+                    if term.kind == CFGEventKind.RAISE or term.label == "RAISE":
+                        msg = f"opened at line {acquire.line}, no close() found on exception path at line {term.line}"
+                    elif term.kind == CFGEventKind.RETURN or term.label.startswith("return") or term.label == "RETURN":
+                        msg = f"opened at line {acquire.line}, no close() found on return path at line {term.line}"
+                    else:
+                        msg = f"opened at line {acquire.line}, no close() found before exit at line {term.line}"
+                else:
+                    msg = f"opened at line {acquire.line}, no close() found before function exit"
+
+                path_trace = leaking_result.path_trace if leaking_result else []
+
                 findings.append(
                     Finding(
                         rule_id=rule_ids.get(resource_type, "LKG-R000"),
@@ -335,10 +406,7 @@ def lifecycle_findings(
                             else FindingSeverity.WARNING
                         ),
                         category=FindingCategory.RESOURCE_LEAK,
-                        message=(
-                            f"Resource {acquire.target} is not guaranteed "
-                            "to be closed."
-                        ),
+                        message=msg,
                         location=SourceLocation(
                             file=file_cfg.path,
                             line=acquire.line,
@@ -349,6 +417,7 @@ def lifecycle_findings(
                         details={
                             "variable": acquire.target,
                             "confidence": resource_confidence(results),
+                            "path_trace": path_trace,
                             "paths": [
                                 {"state": result.state.value, "blocks": result.path}
                                 for result in results

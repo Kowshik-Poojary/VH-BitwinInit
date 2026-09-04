@@ -4,12 +4,18 @@ from __future__ import annotations
 
 import argparse
 import sys
+import os
 from pathlib import Path
 
 from leakguard.analyzer import analyze_project_structure
 from leakguard.serialization import format_human_report, project_analysis_to_json
 from leakguard.analyzer import analyze_project
-from leakguard.reporter import render_json, render_sarif, render_text
+from leakguard.reporter import (
+    post_github_pr_review,
+    render_json,
+    render_sarif,
+    render_text,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -34,6 +40,11 @@ def build_parser() -> argparse.ArgumentParser:
     scan_parser.add_argument("--output", type=str, default=None)
     scan_parser.add_argument("--fail-on", choices=["error", "warning", "any"], default="error")
     scan_parser.add_argument("--min-confidence", choices=["low", "medium", "high"], default="low")
+    scan_parser.add_argument(
+        "--comment-pr",
+        action="store_true",
+        help="Post inline review comments to GitHub PR when GITHUB_TOKEN is available",
+    )
     analyze_parser.add_argument(
         "--format",
         choices=["text", "json"],
@@ -95,6 +106,9 @@ def _run_scan(args: argparse.Namespace) -> int:
         Path(args.output).write_text(output, encoding="utf-8")
     else:
         print(output)
+
+    if args.comment_pr or (os.environ.get("GITHUB_TOKEN") and os.environ.get("GITHUB_EVENT_PATH")):
+        post_github_pr_review(findings)
 
     blocking = {
         "error": {"ERROR"},

@@ -1,0 +1,47 @@
+name: "LeakGuard"
+description: "Static Resource-Leak Detection for Python in CI/CD"
+author: "LeakGuard Team"
+branding:
+  icon: "shield"
+  color: "red"
+
+inputs:
+  path:
+    description: "Directory or file to scan for resource leaks"
+    required: false
+    default: "."
+  format:
+    description: "Output report format (text, sarif, json)"
+    required: false
+    default: "sarif"
+  output:
+    description: "Optional output file path for the report"
+    required: false
+    default: "leakguard.sarif"
+  fail-on:
+    description: "Severity threshold to fail the build (error, warning, any)"
+    required: false
+    default: "error"
+  min-confidence:
+    description: "Minimum confidence level to report (low, medium, high)"
+    required: false
+    default: "low"
+  comment-pr:
+    description: "Whether to post inline PR review comments when running in a pull request"
+    required: false
+    default: "true"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - "scan"
+    - "${{ inputs.path }}"
+    - "--format"
+    - "${{ inputs.format }}"
+    - "--output"
+    - "${{ inputs.output }}"
+    - "--fail-on"
+    - "${{ inputs.fail-on }}"
+    - "--min-confidence"
+    - "${{ inputs.min-confidence }}"

@@ -238,6 +238,7 @@ class _FunctionCFGBuilder:
         self.factory = factory
         self.exit_block = exit_block
         self.edges: list[CFGEdge] = []
+        self._finally_stack: list[CFGBlock] = []
 
     def build(self) -> tuple[CFGBlock, list[CFGBlock]]:
         entry = self.factory.new_block(BlockKind.ENTRY)
@@ -294,10 +295,12 @@ class _FunctionCFGBuilder:
         if isinstance(stmt, (ast.With, ast.AsyncWith)):
             return self._compile_with(stmt, current, loop_targets)
         if isinstance(stmt, ast.Return):
-            self._connect(current, self.exit_block, "return")
+            target = self._finally_stack[-1] if self._finally_stack else self.exit_block
+            self._connect(current, target, "return")
             return []
         if isinstance(stmt, ast.Raise):
-            self._connect(current, self.exit_block, "raise")
+            target = self._finally_stack[-1] if self._finally_stack else self.exit_block
+            self._connect(current, target, "raise")
             return []
         if isinstance(stmt, ast.Break):
             if loop_targets is not None:
@@ -366,6 +369,12 @@ class _FunctionCFGBuilder:
         current: CFGBlock,
         loop_targets: _LoopTargets | None,
     ) -> list[CFGBlock]:
+        finally_header: CFGBlock | None = None
+        if stmt.finalbody:
+            finally_header = self.factory.new_block(BlockKind.FINALLY)
+            self._mark_stmt(finally_header, stmt.finalbody[0])
+            self._finally_stack.append(finally_header)
+
         try_entry, try_exits = self._compile_stmts(stmt.body, loop_targets)
         self._connect(current, try_entry, "try")
 
@@ -380,11 +389,9 @@ class _FunctionCFGBuilder:
                 self._connect(handler_header, h_entry, "handler")
                 for block in h_exits:
                     self._connect(block, merge, "handler_exit")
-        else:
             for block in try_exits:
                 self._connect(block, merge, "try_exit")
-
-        if stmt.handlers:
+        else:
             for block in try_exits:
                 self._connect(block, merge, "try_exit")
 
@@ -395,9 +402,8 @@ class _FunctionCFGBuilder:
             for block in else_exits:
                 self._connect(block, merge, "else_exit")
 
-        if stmt.finalbody:
-            finally_header = self.factory.new_block(BlockKind.FINALLY)
-            self._mark_stmt(finally_header, stmt.finalbody[0])
+        if finally_header is not None:
+            self._finally_stack.pop()
             f_entry, f_exits = self._compile_stmts(stmt.finalbody, loop_targets)
             self._connect(merge, finally_header, "to_finally")
             self._connect(finally_header, f_entry, "finally")

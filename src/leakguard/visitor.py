@@ -12,6 +12,7 @@ from leakguard.ast_utils import (
     target_to_str,
     targets_to_strs,
 )
+from leakguard.import_resolver import ImportResolver
 from leakguard.models import (
     ArgumentInfo,
     AssignmentInfo,
@@ -33,7 +34,7 @@ from leakguard.models import (
     ReturnInfo,
     SourceLocation,
 )
-from leakguard.registry import lookup_cleanup_method, lookup_resource
+from leakguard.registry import ResourceDefinition, lookup_cleanup_method, lookup_resource
 
 
 class ProjectASTVisitor(ast.NodeVisitor):
@@ -48,6 +49,7 @@ class ProjectASTVisitor(ast.NodeVisitor):
         self._class_stack: list[str] = []
         self._current_function_info: FunctionInfo | None = None
         self._processed_acquire_calls: set[int] = set()
+        self._import_resolver = ImportResolver(self.analysis)
 
     def visit_Import(self, node: ast.Import) -> None:
         for alias in node.names:
@@ -62,6 +64,7 @@ class ProjectASTVisitor(ast.NodeVisitor):
                     location=self._loc(node),
                 )
             )
+        self._import_resolver._build_maps()
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
@@ -81,6 +84,7 @@ class ProjectASTVisitor(ast.NodeVisitor):
                     level=node.level,
                 )
             )
+        self._import_resolver._build_maps()
         self.generic_visit(node)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
@@ -376,10 +380,8 @@ class ProjectASTVisitor(ast.NodeVisitor):
             resource_type = None
 
             if isinstance(item.context_expr, ast.Call):
-                call_info_dict = get_call_info(item.context_expr)
-                qname = call_info_dict["qualified_name"]
-                definition = lookup_resource(qname)
-                if definition:
+                qname, definition = self._resolve_call_qname(item.context_expr)
+                if definition and qname:
                     registry_key = qname
                     resource_type = definition.resource_type
 
@@ -431,16 +433,35 @@ class ProjectASTVisitor(ast.NodeVisitor):
             )
         self.generic_visit(node)
 
+    def _resolve_call_qname(
+        self, call_node: ast.Call
+    ) -> tuple[str | None, ResourceDefinition | None]:
+        call_info_dict = get_call_info(call_node)
+        qname = call_info_dict["qualified_name"]
+        definition = lookup_resource(qname)
+        if definition is not None:
+            return qname, definition
+
+        resolved = self._import_resolver.resolve_call(
+            call_info_dict["base"],
+            call_info_dict["attribute"],
+            call_info_dict["function_name"],
+        )
+        if resolved:
+            definition = lookup_resource(resolved)
+            if definition is not None:
+                return resolved, definition
+
+        return qname, None
+
     def _handle_call_assignment(
         self,
         call_node: ast.Call,
         targets: list[str],
         location: SourceLocation,
     ) -> None:
-        call_info_dict = get_call_info(call_node)
-        qname = call_info_dict["qualified_name"]
-        definition = lookup_resource(qname)
-        if definition is None:
+        qname, definition = self._resolve_call_qname(call_node)
+        if definition is None or qname is None:
             return
 
         self._processed_acquire_calls.add(id(call_node))
@@ -464,8 +485,8 @@ class ProjectASTVisitor(ast.NodeVisitor):
         if id(node) in self._processed_acquire_calls:
             return
 
-        definition = lookup_resource(call_info.qualified_name)
-        if definition is None:
+        qname, definition = self._resolve_call_qname(node)
+        if definition is None or qname is None:
             return
 
         self._processed_acquire_calls.add(id(node))
@@ -473,7 +494,7 @@ class ProjectASTVisitor(ast.NodeVisitor):
             ResourceOperation(
                 kind=OperationKind.ACQUIRE,
                 resource_type=definition.resource_type,
-                registry_key=call_info.qualified_name,
+                registry_key=qname,
                 expression=expr_to_str(node),
                 target=None,
                 method=None,
@@ -488,10 +509,8 @@ class ProjectASTVisitor(ast.NodeVisitor):
         target: str | None,
         location: SourceLocation,
     ) -> None:
-        call_info_dict = get_call_info(call_node)
-        qname = call_info_dict["qualified_name"]
-        definition = lookup_resource(qname)
-        if definition is None:
+        qname, definition = self._resolve_call_qname(call_node)
+        if definition is None or qname is None:
             return
 
         self._processed_acquire_calls.add(id(call_node))
