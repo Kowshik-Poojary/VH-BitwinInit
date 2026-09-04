@@ -283,3 +283,5 @@ Set the `report-url` input on the LeakGuard Action to your backend's base URL:
 ```
 
 Every `leakguard scan` run then POSTs a summary (repo, PR number, pass/fail, finding counts) to `/api/reports/action-run`. This is best-effort — a backend outage never fails the CI run.
+
+This repo's own PR workflow (`.github/workflows/leakguard-selftest.yml`) is already wired the same way, reading the URL from the `LEAKGUARD_REPORT_URL` repository variable (Settings → Secrets and variables → Actions → Variables) instead of a hardcoded value — unset, it's a no-op. It also sets `LEAKGUARD_USER_ID` to `${{ github.actor }}` so runs are attributed to the PR author on the admin dashboard rather than "Unknown / unattributed". Once a backend is deployed, set `LEAKGUARD_REPORT_URL` to its base URL and every PR opened against this repo will show up on `/admin` with a pass/fail badge as soon as the self-test job finishes.
