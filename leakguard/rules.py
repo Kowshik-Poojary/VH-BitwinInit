@@ -6,6 +6,8 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
 
 @dataclass(frozen=True)
 class ResourceRule:
@@ -25,10 +27,17 @@ DEFAULT_RULES = (
 
 
 def load_rules(path: str | Path | None = None) -> tuple[ResourceRule, ...]:
-    """Load JSON rules, or return the built-in rules when no file is given."""
+    """Load JSON or YAML rules, or defaults when no file is given."""
     if path is None:
         return DEFAULT_RULES
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    rule_path = Path(path)
+    text = rule_path.read_text(encoding="utf-8")
+    if rule_path.suffix.lower() in {".yaml", ".yml"}:
+        payload = yaml.safe_load(text)
+    else:
+        payload = json.loads(text)
+    if not isinstance(payload, dict) or not isinstance(payload.get("resources"), list):
+        raise ValueError("rules file must contain a resources list")
     return tuple(
         ResourceRule(
             call=item["call"],

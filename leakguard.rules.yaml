@@ -1,0 +1,96 @@
+version: 1
+
+# Reusable starter rules for Python projects. Add project-specific rules below.
+# A rule matches a syntactic call name and describes its cleanup operation.
+resources:
+  # Files and temporary files
+  - call: open
+    resource_type: File
+    cleanup: close
+    managed: true
+  - call: pathlib.Path.open
+    resource_type: File
+    cleanup: close
+    managed: true
+  - call: Path.open
+    resource_type: File
+    cleanup: close
+    managed: true
+  - call: tempfile.NamedTemporaryFile
+    resource_type: Temporary file
+    cleanup: close
+    managed: true
+  - call: tempfile.TemporaryFile
+    resource_type: Temporary file
+    cleanup: close
+    managed: true
+
+  # Databases and database clients
+  - call: sqlite3.connect
+    resource_type: SQLite connection
+    cleanup: close
+    managed: true
+  - call: psycopg2.connect
+    resource_type: PostgreSQL connection
+    cleanup: close
+    managed: true
+  - call: pymysql.connect
+    resource_type: MySQL connection
+    cleanup: close
+    managed: true
+  - call: sqlalchemy.create_engine
+    resource_type: SQLAlchemy engine
+    cleanup: dispose
+    managed: false
+  - call: sqlalchemy.engine.create_engine
+    resource_type: SQLAlchemy engine
+    cleanup: dispose
+    managed: false
+
+  # Network clients and sockets
+  - call: socket.socket
+    resource_type: Socket
+    cleanup: close
+    managed: true
+  - call: ftplib.FTP
+    resource_type: FTP connection
+    cleanup: quit
+    managed: false
+  - call: http.client.HTTPConnection
+    resource_type: HTTP connection
+    cleanup: close
+    managed: true
+  - call: http.client.HTTPSConnection
+    resource_type: HTTPS connection
+    cleanup: close
+    managed: true
+  - call: requests.Session
+    resource_type: HTTP session
+    cleanup: close
+    managed: true
+  - call: aiohttp.ClientSession
+    resource_type: Async HTTP session
+    cleanup: close
+    managed: true
+
+  # Archives, subprocesses, and common clients
+  - call: zipfile.ZipFile
+    resource_type: ZIP archive
+    cleanup: close
+    managed: true
+  - call: tarfile.open
+    resource_type: TAR archive
+    cleanup: close
+    managed: true
+  - call: subprocess.Popen
+    resource_type: Subprocess
+    cleanup: terminate
+    managed: false
+  - call: redis.Redis
+    resource_type: Redis client
+    cleanup: close
+    managed: true
+  - call: boto3.client
+    resource_type: AWS client
+    cleanup: close
+    managed: false

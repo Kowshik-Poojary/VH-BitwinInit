@@ -186,6 +186,14 @@ Custom rules can be supplied with a JSON file:
 leakguard scan . --rules examples\leakguard.rules.json
 ```
 
+For a reusable starter pack covering files, temporary files, SQLite, PostgreSQL, MySQL, SQLAlchemy, sockets, HTTP clients, archives, subprocesses, Redis, and AWS clients, use the repository template:
+
+```powershell
+leakguard scan . --rules leakguard.rules.yaml
+```
+
+Copy `leakguard.rules.yaml` into another Python project and add rules for that project's own factories. YAML rules are data only; LeakGuard still analyzes the project statically and never executes it.
+
 ## Commands
 
 Install LeakGuard locally:

@@ -5,6 +5,7 @@ from leakguard.parser import parse_source
 from leakguard.resources.detector import ResourceDetector
 from leakguard.resources.models import ResourceState
 from leakguard.rules import ResourceRule
+from leakguard.rules import load_rules
 
 
 class ParserDetectorTests(unittest.TestCase):
@@ -34,6 +35,14 @@ class ParserDetectorTests(unittest.TestCase):
 
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0].resource_type, "Socket")
+
+    def test_shared_yaml_rules_load_common_client_rules(self):
+        rules = load_rules("leakguard.rules.yaml")
+        rule_names = {rule.call for rule in rules}
+
+        self.assertIn("requests.Session", rule_names)
+        self.assertIn("sqlalchemy.create_engine", rule_names)
+        self.assertIn("zipfile.ZipFile", rule_names)
     def test_resource_detector_records_open_and_close_locations(self):
         scopes = parse_source(
             "def read_file():\n"

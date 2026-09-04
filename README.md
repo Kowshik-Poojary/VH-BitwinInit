@@ -212,6 +212,13 @@ Resource rules are JSON-configurable:
 leakguard scan . --rules examples\leakguard.rules.json
 ```
 
+For a reusable starter pack, copy [leakguard.rules.yaml](leakguard.rules.yaml) into a Python project and run:
+
+```powershell
+leakguard scan . --rules leakguard.rules.yaml
+```
+
+The starter pack includes common file, temporary-file, SQLite, PostgreSQL, MySQL, SQLAlchemy, socket, HTTP, archive, subprocess, Redis, and AWS client patterns. Add project-specific factories to the same `resources` list. Rules are syntactic and deterministic; import aliases and framework-owned lifecycle contracts require additional project analysis.
 The built-in rules include `open`, `Path.open`, `pathlib.Path.open`, `sqlite3.connect`, and `socket.socket`. A rule defines the acquisition call, resource type, cleanup method, and whether context-manager handling is trusted.
 
 Create a baseline for existing findings:

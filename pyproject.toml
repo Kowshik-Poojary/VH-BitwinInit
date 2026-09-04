@@ -7,7 +7,9 @@ name = "leakguard"
 version = "0.1.0"
 description = "Python static resource-leak detection for CI/CD"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+	"PyYAML>=6.0",
+]
 
 [project.scripts]
 leakguard = "leakguard.cli:main"
