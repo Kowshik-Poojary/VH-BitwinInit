@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getToken } from "../api";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
@@ -90,8 +91,9 @@ export default function ScanPage() {
     setLog([]);
     setLogCollapsed(false);
 
+    const token = getToken();
     const es = new EventSource(
-      `${API_BASE}/api/scan/stream?repo_url=${encodeURIComponent(url)}`
+      `${API_BASE}/api/scan/stream?repo_url=${encodeURIComponent(url)}&token=${encodeURIComponent(token || "")}`
     );
     esRef.current = es;
 

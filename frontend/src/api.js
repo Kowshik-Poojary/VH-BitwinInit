@@ -1,8 +1,16 @@
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
+export function getToken() {
+  return localStorage.getItem("lg_token");
+}
+
 async function request(path, options) {
+  const token = getToken();
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     ...options,
   });
   const data = await res.json().catch(() => null);
@@ -10,6 +18,13 @@ async function request(path, options) {
     throw new Error(data?.detail || `Request failed (${res.status})`);
   }
   return data;
+}
+
+export function loginRequest(username, password) {
+  return request("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
 }
 
 export function scanRepo(repoUrl) {

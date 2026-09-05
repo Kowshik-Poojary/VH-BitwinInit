@@ -8,14 +8,15 @@ import threading
 
 from bson import ObjectId
 from bson.errors import InvalidId
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from app.auth import get_current_user
 from app.db import get_db
 from app.scan_service import ScanError, run_scan
 
-router = APIRouter(prefix="/api", tags=["scan"])
+router = APIRouter(prefix="/api", tags=["scan"], dependencies=[Depends(get_current_user)])
 
 
 class ScanRequest(BaseModel):

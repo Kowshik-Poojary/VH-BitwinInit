@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from app.auth import require_admin
 from app.db import get_db
 from app.services.issues import (
     get_pr_issues,
@@ -13,7 +14,9 @@ from app.services.issues import (
     get_repo_prs,
 )
 
-router = APIRouter(prefix="/api/admin", tags=["admin"])
+router = APIRouter(
+    prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)]
+)
 
 
 @router.get("/overview")

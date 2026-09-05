@@ -97,6 +97,96 @@ body {
   background: var(--accent);
 }
 
+.nav-user {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: 12px;
+}
+
+.nav-logout {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-logout:hover {
+  color: var(--text-primary);
+  background: var(--surface-2);
+}
+
+/* ---------- Login ---------- */
+
+.login-page {
+  display: flex;
+  justify-content: center;
+  padding-top: 80px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 340px;
+  padding: 32px 28px;
+}
+
+.login-card h1 {
+  font-size: 22px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.login-form input {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.login-form button {
+  margin-top: 6px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-form button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 /* ---------- Typography ---------- */
 
 h1 {

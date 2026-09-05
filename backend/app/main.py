@@ -5,12 +5,12 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import admin, reports, scan
+from app.routers import admin, auth, reports, scan
 
 app = FastAPI(title="LeakGuard Backend")
 
-# MVP: wide open CORS since there's no auth yet either. Tighten before any
-# real deployment.
+# MVP: wide open CORS. Auth is a basic bearer-token scheme layered on top,
+# tighten this before any real deployment.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,6 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(scan.router)
 app.include_router(reports.router)
 app.include_router(admin.router)
