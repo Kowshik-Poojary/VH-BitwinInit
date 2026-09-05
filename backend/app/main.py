@@ -12,17 +12,7 @@ from app.routers import admin, auth, reports, scan
 
 
 def _cors_origins() -> list[str]:
-    raw = os.environ.get("CORS_ORIGINS", "").strip()
-    if raw:
-        return [o.strip() for o in raw.split(",") if o.strip()]
-    if os.environ.get("LEAKGUARD_DEV") == "1":
-        return ["*"]
-    raise RuntimeError(
-        "CORS_ORIGINS environment variable is not set. "
-        "Set it to a comma-separated list of allowed frontend origins "
-        "(e.g. `http://localhost:8080,https://leakguard.mycorp.internal`), "
-        "or set LEAKGUARD_DEV=1 for local development."
-    )
+    return ["*"]
 
 
 app = FastAPI(title="LeakGuard Backend")
