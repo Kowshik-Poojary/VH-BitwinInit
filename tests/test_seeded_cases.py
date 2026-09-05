@@ -87,3 +87,38 @@ def test_10_trick_cases(samples_dir: Path):
     assert findings[0].rule_id == "LKG-R003"
     assert findings[0].resource_type == "database"
     assert findings[0].details["variable"] == "conn"
+
+
+# --- Inter-procedural (cross-file) seeded cases ---
+
+@pytest.fixture
+def inter_dir() -> Path:
+    return Path(__file__).resolve().parent.parent / "samples" / "leaky_demo" / "inter"
+
+
+def test_inter_cross_file_helper_no_findings(inter_dir: Path):
+    """
+    inter/main.py opens a file and passes it to close_file() defined in inter/closer.py.
+    The inter-procedural analysis must recognize that close_file() closes its first parameter,
+    and emit zero findings for the entire inter/ folder.
+    """
+    findings = analyze_project(inter_dir)
+    assert findings == [], (
+        f"Expected 0 findings for cross-file helper close pattern, got: {findings}"
+    )
+
+
+def test_inter_whole_leaky_demo_count(samples_dir: Path):
+    """
+    Scanning the full leaky_demo folder (including the inter/ subfolder) must not
+    produce spurious findings from the safely-closed inter/ case.
+    The inter/ folder contributes 0 findings; the rest contribute the expected count.
+    """
+    findings = analyze_project(samples_dir)
+    inter_findings = [
+        f for f in findings
+        if "inter" in f.location.file.replace("\\", "/")
+    ]
+    assert inter_findings == [], (
+        f"Inter-procedural sample should have 0 findings, got: {inter_findings}"
+    )
