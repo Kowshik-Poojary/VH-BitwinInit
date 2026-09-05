@@ -41,6 +41,8 @@ class LifecycleResult:
     path: list[int]
     terminating_event: CFGEvent | None = None
     path_trace: list[dict[str, Any]] = field(default_factory=list)
+    reached_loop_limit: bool = False
+    loop_limit: int | str = "x"
 
 
 def _get_acquire_event(
@@ -70,8 +72,9 @@ def _get_acquire_event(
 def _get_paths_from_acquire(
     function_cfg: FunctionCFG,
     acquire_block_id: int,
+    max_loops: int = 10,
 ) -> list[list[int]]:
-    return function_cfg.paths_to_exit_from(acquire_block_id)
+    return function_cfg.paths_to_exit_from(acquire_block_id, max_loops=max_loops)
 
 
 def _events_for_path(
@@ -109,9 +112,6 @@ def _events_for_path(
             if is_terminal:
                 terminal_seen = True
                 break
-
-    events.sort(key=lambda event: (event.line, event.column))
-
     return events
 
 
@@ -276,7 +276,17 @@ def analyze_resource(
     acquire_column: int | None = None,
     summaries: dict[str, FunctionSummary] | None = None,
     callee_resolver: CalleeResolver | None = None,
+    max_loops: int | str = "x",
 ) -> list[LifecycleResult]:
+    if isinstance(max_loops, int):
+        loop_limit_num = max_loops
+        display_limit = str(max_loops)
+    elif str(max_loops).isdigit():
+        loop_limit_num = int(max_loops)
+        display_limit = str(max_loops)
+    else:
+        loop_limit_num = 10
+        display_limit = str(max_loops)
 
     acquire = _get_acquire_event(
         function_cfg,
@@ -289,9 +299,14 @@ def analyze_resource(
     if acquire is None:
         return []
 
+    acquire_block = function_cfg.get_block(acquire_block_id)
+    is_in_loop = bool(acquire_block and acquire_block.in_loop) or bool(acquire.details.get("in_loop"))
+    loop_headers = {b.id for b in function_cfg.blocks if b.kind == BlockKind.LOOP_HEADER}
+
     paths = _get_paths_from_acquire(
         function_cfg,
         acquire_block_id,
+        max_loops=loop_limit_num,
     )
 
     results: list[LifecycleResult] = []
@@ -317,6 +332,19 @@ def analyze_resource(
             callee_resolver=callee_resolver,
         )
 
+        reached_loop_limit = False
+        if is_in_loop or loop_headers:
+            loop_header_count = max((path.count(h_id) for h_id in loop_headers), default=0)
+            if loop_header_count >= loop_limit_num:
+                reached_loop_limit = True
+            elif is_in_loop and (
+                (term_event and "REASSIGN" in getattr(term_event, "label", ""))
+                or any("REASSIGN" in str(step.get("event", "")) for step in path_trace)
+                or loop_header_count > 1
+                or (loop_header_count >= 1 and state in (ResourceState.OPEN, ResourceState.LEAKED))
+            ):
+                reached_loop_limit = True
+
         results.append(
             LifecycleResult(
                 state=state,
@@ -325,6 +353,8 @@ def analyze_resource(
                 path=path,
                 terminating_event=term_event,
                 path_trace=path_trace,
+                reached_loop_limit=reached_loop_limit,
+                loop_limit=display_limit,
             )
         )
 
@@ -407,6 +437,7 @@ def _build_callee_resolver(
 def lifecycle_findings(
     project: ProjectAnalysis,
     cfg_project: CFGProject,
+    max_loops: int | str = "x",
 ) -> list[Finding]:
     findings: list[Finding] = []
     rule_ids = {
@@ -415,6 +446,13 @@ def lifecycle_findings(
         "database": "LKG-R003",
         "tempfile": "LKG-R004",
     }
+
+    if isinstance(max_loops, int):
+        display_limit = str(max_loops)
+    elif str(max_loops).isdigit():
+        display_limit = str(max_loops)
+    else:
+        display_limit = str(max_loops)
 
     # Build inter-procedural summaries once for the entire project.
     summaries = build_summaries(cfg_project)
@@ -442,6 +480,7 @@ def lifecycle_findings(
                     acquire.column,
                     summaries=summaries,
                     callee_resolver=callee_resolver,
+                    max_loops=max_loops,
                 )
                 state = aggregate_resource_results(results)
                 if state in (ResourceState.CLOSED, ResourceState.ESCAPED):
@@ -458,7 +497,14 @@ def lifecycle_findings(
                     (r for r in results if r.state in (ResourceState.OPEN, ResourceState.LEAKED)),
                     None,
                 )
-                if leaking_result and leaking_result.terminating_event:
+                loop_leak_result = next(
+                    (r for r in results if r.reached_loop_limit and r.state in (ResourceState.OPEN, ResourceState.LEAKED)),
+                    None,
+                )
+
+                if loop_leak_result is not None or (acquire.details.get("in_loop") and any(r.state in (ResourceState.OPEN, ResourceState.LEAKED) for r in results)):
+                    msg = f"upper limit of {display_limit} loops reached hence can be leaky while it may get closed later"
+                elif leaking_result and leaking_result.terminating_event:
                     term = leaking_result.terminating_event
                     if term.kind == CFGEventKind.RAISE or term.label == "RAISE":
                         msg = f"opened at line {acquire.line}, no close() found on exception path at line {term.line}"
@@ -470,6 +516,19 @@ def lifecycle_findings(
                     msg = f"opened at line {acquire.line}, no close() found before function exit"
 
                 path_trace = leaking_result.path_trace if leaking_result else []
+
+                details = {
+                    "variable": acquire.target,
+                    "confidence": resource_confidence(results),
+                    "path_trace": path_trace,
+                    "paths": [
+                        {"state": result.state.value, "blocks": result.path}
+                        for result in results
+                    ],
+                }
+                if loop_leak_result is not None or acquire.details.get("in_loop"):
+                    details["loop_limit_reached"] = True
+                    details["max_loops"] = display_limit
 
                 findings.append(
                     Finding(
@@ -488,22 +547,14 @@ def lifecycle_findings(
                         ),
                         status=status,
                         resource_type=resource_type,
-                        details={
-                            "variable": acquire.target,
-                            "confidence": resource_confidence(results),
-                            "path_trace": path_trace,
-                            "paths": [
-                                {"state": result.state.value, "blocks": result.path}
-                                for result in results
-                            ],
-                        },
+                        details=details,
                     )
                 )
 
     return findings
 
 
-def analyze_function(function_cfg: FunctionCFG) -> list[LifecycleResult]:
+def analyze_function(function_cfg: FunctionCFG, max_loops: int | str = "x") -> list[LifecycleResult]:
     results = []
 
     for block_id, acquire in _find_acquire_blocks(function_cfg):
@@ -517,6 +568,7 @@ def analyze_function(function_cfg: FunctionCFG) -> list[LifecycleResult]:
                 acquire.target,
                 acquire.line,
                 acquire.column,
+                max_loops=max_loops,
             )
         )
 

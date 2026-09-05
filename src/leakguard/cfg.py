@@ -76,6 +76,8 @@ class CFGBlock:
     events: list[CFGEvent] = field(default_factory=list)
     start_line: int | None = None
     end_line: int | None = None
+    in_loop: bool = False
+    loop_header_id: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -84,6 +86,8 @@ class CFGBlock:
             "events": [e.to_dict() for e in self.events],
             "start_line": self.start_line,
             "end_line": self.end_line,
+            "in_loop": self.in_loop,
+            "loop_header_id": self.loop_header_id,
         }
 
 
@@ -121,13 +125,25 @@ class FunctionCFG:
     def predecessors(self, block_id: int) -> list[tuple[int, str | None]]:
         return [(e.source_id, e.label) for e in self.edges if e.target_id == block_id]
 
-    def paths_to_exit_from(self, start_id: int, max_depth: int = 100) -> list[list[int]]:
+    def paths_to_exit_from(
+        self, start_id: int, max_depth: int = 100, max_loops: int = 10
+    ) -> list[list[int]]:
         """Enumerate paths from start block to any exit (for testing/analysis)."""
         exits = set(self.exit_ids)
         paths: list[list[int]] = []
+        loop_header_ids = {b.id for b in self.blocks if b.kind == BlockKind.LOOP_HEADER}
 
-        def dfs(current: int, path: list[int], visited: set[int]) -> None:
+        def dfs(
+            current: int,
+            path: list[int],
+            loop_back_counts: dict[int, int],
+            last_iteration: dict[int, int],
+            current_iter: int,
+        ) -> None:
+            if len(paths) >= 100:
+                return
             if len(path) > max_depth:
+                paths.append(list(path))
                 return
             if current in exits:
                 paths.append(list(path))
@@ -136,16 +152,55 @@ class FunctionCFG:
             if not succs:
                 paths.append(list(path))
                 return
-            for target, _ in succs:
-                if target in visited:
-                    continue
-                visited.add(target)
-                path.append(target)
-                dfs(target, path, visited)
-                path.pop()
-                visited.remove(target)
 
-        dfs(start_id, [start_id], {start_id})
+            for target, label in succs:
+                is_back_edge = (
+                    label == "loop"
+                    or (target in loop_header_ids and target in path)
+                )
+                if is_back_edge:
+                    count = loop_back_counts.get(target, 0)
+                    if count < max_loops:
+                        loop_back_counts[target] = count + 1
+                        prev_val = last_iteration.get(target)
+                        last_iteration[target] = current_iter + 1
+                        path.append(target)
+                        dfs(
+                            target,
+                            path,
+                            loop_back_counts,
+                            last_iteration,
+                            current_iter + 1,
+                        )
+                        path.pop()
+                        if prev_val is None:
+                            last_iteration.pop(target, None)
+                        else:
+                            last_iteration[target] = prev_val
+                        loop_back_counts[target] = count
+                    else:
+                        paths.append(list(path))
+                else:
+                    if last_iteration.get(target) == current_iter:
+                        continue
+                    prev_val = last_iteration.get(target)
+                    last_iteration[target] = current_iter
+                    path.append(target)
+                    dfs(
+                        target,
+                        path,
+                        loop_back_counts,
+                        last_iteration,
+                        current_iter,
+                    )
+                    path.pop()
+                    if prev_val is None:
+                        last_iteration.pop(target, None)
+                    else:
+                        last_iteration[target] = prev_val
+
+        initial_last_iteration = {start_id: 0}
+        dfs(start_id, [start_id], {}, initial_last_iteration, 0)
         return paths
 
     def to_dict(self) -> dict[str, Any]:
@@ -259,6 +314,9 @@ class _FunctionCFGBuilder:
             return empty, [empty]
 
         entry = self.factory.new_block(BlockKind.PLAIN)
+        if loop_targets is not None:
+            entry.in_loop = True
+            entry.loop_header_id = loop_targets.continue_target.id
         current = entry
         fallthrough: list[CFGBlock] = [current]
 
@@ -269,6 +327,9 @@ class _FunctionCFGBuilder:
             current = fallthrough[0]
             if len(fallthrough) > 1:
                 merge = self.factory.new_block(BlockKind.MERGE)
+                if loop_targets is not None:
+                    merge.in_loop = True
+                    merge.loop_header_id = loop_targets.continue_target.id
                 for block in fallthrough:
                     self._connect(block, merge, "merge")
                 fallthrough = [merge]
@@ -284,6 +345,9 @@ class _FunctionCFGBuilder:
         incoming: list[CFGBlock],
     ) -> list[CFGBlock]:
         current = incoming[0]
+        if loop_targets is not None:
+            current.in_loop = True
+            current.loop_header_id = loop_targets.continue_target.id
         self._mark_stmt(current, stmt)
 
         if isinstance(stmt, ast.If):
@@ -512,6 +576,9 @@ def _annotate_function_cfg(
         if block is None and cfg.blocks:
             block = cfg.blocks[0]
         if block is not None:
+            if block.in_loop:
+                event.details["in_loop"] = True
+                event.details["loop_header_id"] = block.loop_header_id
             block.events.append(event)
 
     qname = func_info.qualified_name

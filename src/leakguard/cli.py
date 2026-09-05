@@ -52,6 +52,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=os.environ.get("LEAKGUARD_REPORT_URL", ""),
         help="Base URL of the LeakGuard web backend to report this run's summary to (admin dashboard)",
     )
+    scan_parser.add_argument(
+        "--max-loops",
+        default="x",
+        help="Upper limit of loop iterations to traverse during leak analysis (default: 'x')",
+    )
     analyze_parser.add_argument(
         "--format",
         choices=["text", "json"],
@@ -102,7 +107,7 @@ def _run_scan(args: argparse.Namespace) -> int:
 
     findings = []
     for path in paths:
-        findings.extend(analyze_project(path))
+        findings.extend(analyze_project(path, max_loops=args.max_loops))
     confidence_rank = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
     minimum = confidence_rank[args.min_confidence.upper()]
     findings = [

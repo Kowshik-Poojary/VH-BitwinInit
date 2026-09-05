@@ -264,6 +264,7 @@ def analyze_project(
     exclude_patterns: list[str] | None = None,
     max_file_size: int | None = None,
     on_progress: ProgressCallback | None = None,
+    max_loops: int | str = "x",
 ) -> list[Finding]:
     """Public API: analyze a project and return diagnostic and leak findings."""
     project = analyze_project_structure(
@@ -281,7 +282,7 @@ def analyze_project(
 
     if on_progress:
         on_progress("lifecycle_analysis", {})
-    findings.extend(lifecycle_findings(project, cfg))
+    findings.extend(lifecycle_findings(project, cfg, max_loops=max_loops))
 
     if on_progress:
         on_progress("analysis_complete", {"findings": len(findings)})
