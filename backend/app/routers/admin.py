@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 
-from app.auth import require_admin
+from app.auth import create_user, list_team, require_admin
 from app.db import get_db
 from app.services.issues import (
     get_pr_issues,
@@ -17,6 +18,23 @@ from app.services.issues import (
 router = APIRouter(
     prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)]
 )
+
+
+class CreateTeamMemberRequest(BaseModel):
+    username: str
+    password: str
+
+
+@router.get("/team")
+def team(admin: dict = Depends(require_admin)) -> list[dict]:
+    return list_team(admin["username"])
+
+
+@router.post("/team")
+def add_team_member(
+    request: CreateTeamMemberRequest, admin: dict = Depends(require_admin)
+) -> dict:
+    return create_user(admin["username"], request.username, request.password)
 
 
 @router.get("/overview")

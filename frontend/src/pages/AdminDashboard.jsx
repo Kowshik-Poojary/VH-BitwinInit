@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getOverview, getRepos, getRecent, getUsers } from "../api";
+import {
+  getOverview,
+  getRepos,
+  getRecent,
+  getUsers,
+  getTeam,
+  addTeamMember,
+} from "../api";
 
 function StatTile({ icon, label, value }) {
   return (
@@ -40,7 +47,17 @@ export default function AdminDashboard() {
   const [repos, setRepos] = useState([]);
   const [recent, setRecent] = useState([]);
   const [users, setUsers] = useState([]);
+  const [team, setTeam] = useState([]);
   const [error, setError] = useState(null);
+
+  const [newUsername, setNewUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [teamError, setTeamError] = useState(null);
+  const [addingMember, setAddingMember] = useState(false);
+
+  function loadTeam() {
+    getTeam().then(setTeam).catch((err) => setTeamError(err.message));
+  }
 
   useEffect(() => {
     Promise.all([getOverview(), getRepos(), getRecent(), getUsers()])
@@ -51,7 +68,25 @@ export default function AdminDashboard() {
         setUsers(u);
       })
       .catch((err) => setError(err.message));
+    loadTeam();
   }, []);
+
+  async function handleAddMember(e) {
+    e.preventDefault();
+    if (addingMember || !newUsername.trim() || !newPassword) return;
+    setAddingMember(true);
+    setTeamError(null);
+    try {
+      await addTeamMember(newUsername.trim(), newPassword);
+      setNewUsername("");
+      setNewPassword("");
+      loadTeam();
+    } catch (err) {
+      setTeamError(err.message);
+    } finally {
+      setAddingMember(false);
+    }
+  }
 
   if (error) {
     return (
@@ -121,6 +156,51 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </div>
+
+      <h2>Team</h2>
+      <p className="subtitle">
+        Developers who can log in and run scans under your account.
+      </p>
+      <form className="team-form" onSubmit={handleAddMember}>
+        <input
+          type="text"
+          placeholder="username"
+          value={newUsername}
+          onChange={(e) => setNewUsername(e.target.value)}
+          disabled={addingMember}
+        />
+        <input
+          type="password"
+          placeholder="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          disabled={addingMember}
+        />
+        <button
+          type="submit"
+          disabled={addingMember || !newUsername.trim() || !newPassword}
+        >
+          {addingMember ? "Adding…" : "Add developer"}
+        </button>
+      </form>
+      {teamError && <div className="error-banner">{teamError}</div>}
+      {team.length === 0 ? (
+        <div className="table-wrap">
+          <div className="empty-row">No developers added yet.</div>
+        </div>
+      ) : (
+        <div className="user-grid">
+          {team.map((t) => (
+            <div className="user-chip" key={t.username}>
+              <span className="user-avatar">{initials(t.username)}</span>
+              <div>
+                <div className="user-chip-name">{t.username}</div>
+                <div className="user-chip-id">{t.role}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <h2>Users</h2>
       {users.length === 0 ? (

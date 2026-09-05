@@ -50,6 +50,17 @@ export function getUsers() {
   return request("/api/admin/users");
 }
 
+export function getTeam() {
+  return request("/api/admin/team");
+}
+
+export function addTeamMember(username, password) {
+  return request("/api/admin/team", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
+}
+
 export function getRepoLogs(repo) {
   return request(`/api/admin/repos/${encodeURIComponent(repo)}/logs`);
 }

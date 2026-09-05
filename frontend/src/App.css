@@ -697,6 +697,46 @@ td a:hover {
   color: var(--accent);
 }
 
+/* ---------- Team form ---------- */
+
+.team-form {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.team-form input {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.team-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.team-form button {
+  padding: 11px 20px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.team-form button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 /* ---------- Users grid ---------- */
 
 .user-grid {
