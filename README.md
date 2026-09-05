@@ -134,7 +134,7 @@ leakguard scan <path> [--format text|sarif|json] [--output FILE] [--fail-on erro
 
 ### Phase D.1 — Local pre-commit hook (blocks the user before commit, not just CI)
 
-CI alone only catches leaks *after* a push/PR — it doesn't stop a developer from committing them locally. LeakGuard ships as a real [pre-commit](https://pre-commit.com) hook, defined in `.pre-commit-hooks.yaml` at repo root, and wired up for this repo itself in `.pre-commit-config.yaml` (`repo: local`, running the installed `leakguard` console script against staged `.py` files with `--fail-on error`).
+CI alone only catches leaks *after* a push/PR — it doesn't stop a developer from committing them locally. LeakGuard ships as a real [pre-commit](https://pre-commit.com) hook, defined in `.pre-commit-hooks.yaml` at repo root, and wired up for this repo itself in `.pre-commit-config.yaml` (`repo: local`, running the installed `leakguard` console script against staged `.py` files with `--fail-on error --fix`).
 
 Setup:
 
@@ -143,7 +143,7 @@ pip install -e ".[dev]"
 pre-commit install
 ```
 
-Once installed, every `git commit` runs `leakguard scan` against the staged Python files and **aborts the commit** if any blocking-severity (`error`) leak is found — matching the same `--fail-on error` threshold used in CI, so local and CI behavior stay consistent. Any repo can also depend on this one directly as a pre-commit hook (`repo: <this-repo-url>`, `hooks: [{id: leakguard}]`) since `.pre-commit-hooks.yaml` publishes it as a reusable hook.
+Once installed, every `git commit` runs `leakguard scan` against the staged Python files and **aborts the commit** if any blocking-severity (`error`) leak is found — matching the same `--fail-on error` threshold used in CI, so local and CI behavior stay consistent. The `--fix` flag also offers an AST-based quick fix (wrapping a leaked acquire in a `with` block) for the safe, single-line cases; when pre-commit runs without an attached terminal (e.g. during the actual commit) it detects that and silently skips the prompts instead of hanging, so the flag is always safe to leave on. Any repo can also depend on this one directly as a pre-commit hook (`repo: <this-repo-url>`, `hooks: [{id: leakguard}]`) since `.pre-commit-hooks.yaml` publishes it as a reusable hook — those consuming repos get the same quick-fix behavior for free.
 
 ### Phase E — Seeded sample repo (1.5h)
 

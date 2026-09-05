@@ -10,6 +10,7 @@ from pathlib import Path
 from leakguard.analyzer import analyze_project_structure
 from leakguard.serialization import format_human_report, project_analysis_to_json
 from leakguard.analyzer import analyze_project
+from leakguard.models import Finding, FindingCategory
 from leakguard.reporter import (
     post_github_pr_review,
     render_json,
@@ -56,6 +57,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--max-loops",
         default="x",
         help="Upper limit of loop iterations to traverse during leak analysis (default: 'x')",
+    )
+    scan_parser.add_argument(
+        "--fix",
+        action="store_true",
+        help=(
+            "After reporting findings, interactively offer to auto-apply quick fixes "
+            "(wraps a leaked acquire in a 'with' block) for findings where it's safe to do so"
+        ),
     )
     analyze_parser.add_argument(
         "--format",
@@ -125,6 +134,9 @@ def _run_scan(args: argparse.Namespace) -> int:
     if args.comment_pr or (os.environ.get("GITHUB_TOKEN") and os.environ.get("GITHUB_EVENT_PATH")):
         post_github_pr_review(findings)
 
+    if args.fix:
+        _run_interactive_fix(findings)
+
     blocking = {
         "error": {"ERROR"},
         "warning": {"ERROR", "WARNING"},
@@ -136,6 +148,76 @@ def _run_scan(args: argparse.Namespace) -> int:
         report_run_to_backend(findings, args.report_url, is_blocked)
 
     return 1 if is_blocked else 0
+
+
+def _run_interactive_fix(findings: list[Finding]) -> None:
+    from leakguard.fixer import build_with_fix
+
+    leak_findings = [f for f in findings if f.category == FindingCategory.RESOURCE_LEAK]
+    if not leak_findings:
+        return
+
+    by_file: dict[str, list[Finding]] = {}
+    for finding in leak_findings:
+        by_file.setdefault(finding.location.file, []).append(finding)
+
+    interactive = sys.stdin.isatty()
+
+    print("\n" + "=" * 60)
+    print("  Quick Fix")
+    print("=" * 60)
+    if not interactive:
+        print(
+            "(no interactive terminal attached - showing suggestions only, none applied)"
+        )
+
+    apply_all = False
+    fixed = 0
+    considered = 0
+
+    for file_path, file_findings in by_file.items():
+        path = Path(file_path)
+        for finding in sorted(file_findings, key=lambda f: f.location.line):
+            try:
+                source = path.read_text(encoding="utf-8", newline="")
+            except OSError as exc:
+                print(f"  Skipping {file_path}: {exc}", file=sys.stderr)
+                continue
+
+            suggestion = build_with_fix(source, finding)
+            if suggestion is None:
+                continue
+
+            considered += 1
+            print(
+                f"\n{file_path}:{finding.location.line}  {finding.rule_id}  {finding.message}"
+            )
+            print(suggestion.preview)
+
+            if not interactive:
+                continue
+
+            if not apply_all:
+                answer = input("Apply this fix? [y/N/a=all/q=quit]: ").strip().lower()
+                if answer == "q":
+                    print("Stopped applying quick fixes.")
+                    return
+                if answer == "a":
+                    apply_all = True
+                elif answer != "y":
+                    continue
+
+            path.write_text("".join(suggestion.new_lines), encoding="utf-8", newline="")
+            fixed += 1
+            print(f"  Fixed: wrapped '{finding.details.get('variable')}' in a with-block.")
+
+    if considered == 0:
+        print("\nNo automatic quick fixes available for the detected findings.")
+    elif not interactive:
+        print(f"\n{considered} quick fix(es) available - run `leakguard scan ... --fix` from an interactive terminal to apply.")
+    else:
+        print(f"\nApplied {fixed} of {considered} available quick fix(es).")
+        print("Re-run `leakguard scan` to verify the remaining findings.")
 
 
 def _run_analyze(args: argparse.Namespace) -> int:

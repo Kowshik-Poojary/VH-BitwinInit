@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: leakguard
         name: LeakGuard (resource leak scan)
-        entry: leakguard scan --fail-on error
+        entry: leakguard scan --fail-on error --fix
         language: system
         types: [python]
         pass_filenames: true
