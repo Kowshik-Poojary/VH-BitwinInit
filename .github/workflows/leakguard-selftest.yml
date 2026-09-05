@@ -2,9 +2,9 @@ name: LeakGuard Self-Test
 
 on:
   push:
-    branches: [ main, Kowshik ]
+    branches: [main, Kowshik]
   pull_request:
-    branches: [ main, Kowshik ]
+    branches: [main, Kowshik]
 
 jobs:
   test:
@@ -36,6 +36,7 @@ jobs:
       contents: read
       security-events: write
       actions: read
+      pull_request: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

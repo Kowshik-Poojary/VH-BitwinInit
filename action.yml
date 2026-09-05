@@ -51,3 +51,4 @@ runs:
     - "${{ inputs.min-confidence }}"
     - "--report-url"
     - "${{ inputs.report-url }}"
+    - "--comment-pr"
