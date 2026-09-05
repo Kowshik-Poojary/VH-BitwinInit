@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Callable
 
 from leakguard.cfg import (
     BlockKind,
@@ -11,7 +11,9 @@ from leakguard.cfg import (
     CFGProject,
     FunctionCFG,
 )
+from leakguard.interproc import FunctionSummary, build_summaries
 from leakguard.models import (
+    FileAnalysis,
     Finding,
     FindingCategory,
     FindingSeverity,
@@ -19,6 +21,8 @@ from leakguard.models import (
     ProjectAnalysis,
     SourceLocation,
 )
+
+CalleeResolver = Callable[[str], str | None]
 
 
 class ResourceState(str, Enum):
@@ -150,6 +154,8 @@ def _classify_path(
     acquire_line: int,
     acquire_column: int,
     file_path: str = "",
+    summaries: dict[str, FunctionSummary] | None = None,
+    callee_resolver: CalleeResolver | None = None,
 ) -> tuple[ResourceState, CFGEvent | None, list[dict[str, Any]]]:
     started = False
     aliases = {target}
@@ -196,6 +202,16 @@ def _classify_path(
             event.kind == CFGEventKind.CALL_PASS
             and any(argument in aliases for argument in event.details.get("arguments", []))
         ):
+            # Try inter-procedural resolution: if the callee provably closes the argument, treat as CLOSED.
+            if summaries is not None and callee_resolver is not None:
+                callee_qname = callee_resolver(event.label)
+                if callee_qname is not None:
+                    smry = summaries.get(callee_qname)
+                    if smry is not None and not smry.is_method:
+                        args = event.details.get("arguments", [])
+                        for i, arg in enumerate(args):
+                            if arg in aliases and i in smry.closes_param_indices:
+                                return ResourceState.CLOSED, event, path_trace
             passed_to_function = True
             continue
 
@@ -258,6 +274,8 @@ def analyze_resource(
     target: str,
     acquire_line: int | None = None,
     acquire_column: int | None = None,
+    summaries: dict[str, FunctionSummary] | None = None,
+    callee_resolver: CalleeResolver | None = None,
 ) -> list[LifecycleResult]:
 
     acquire = _get_acquire_event(
@@ -295,6 +313,8 @@ def analyze_resource(
             acquire.line,
             acquire.column,
             file_path=file_path,
+            summaries=summaries,
+            callee_resolver=callee_resolver,
         )
 
         results.append(
@@ -345,6 +365,45 @@ def resource_confidence(results: list[LifecycleResult]) -> str:
     return "LOW"
 
 
+def _build_callee_resolver(
+    file_analysis: FileAnalysis,
+    summaries: dict[str, FunctionSummary],
+) -> CalleeResolver:
+    """Build a per-file resolver: callee expression string → qualified function name."""
+    # Index all known qualified names by their bare (last-component) name.
+    by_bare: dict[str, list[str]] = {}
+    for qname in summaries:
+        bare = qname.split(".")[-1]
+        by_bare.setdefault(bare, []).append(qname)
+
+    # Build an import alias map: local name → fully-qualified name.
+    import_map: dict[str, str] = {}
+    for imp in file_analysis.imports:
+        if imp.is_from_import and imp.imported_name:
+            local = imp.alias or imp.imported_name
+            full = f"{imp.module}.{imp.imported_name}" if imp.module else imp.imported_name
+            import_map[local] = full
+        else:
+            local = imp.alias or imp.module
+            import_map[local] = imp.module
+
+    def resolve(callee_expr: str) -> str | None:
+        # Exact match (same-module call already has the qualified name).
+        if callee_expr in summaries:
+            return callee_expr
+        # Via import alias (e.g. `from helpers import close_it` → helpers.close_it).
+        resolved = import_map.get(callee_expr)
+        if resolved and resolved in summaries:
+            return resolved
+        # Fallback: unique bare-name match in the project.
+        candidates = by_bare.get(callee_expr, [])
+        if len(candidates) == 1:
+            return candidates[0]
+        return None
+
+    return resolve
+
+
 def lifecycle_findings(
     project: ProjectAnalysis,
     cfg_project: CFGProject,
@@ -357,7 +416,20 @@ def lifecycle_findings(
         "tempfile": "LKG-R004",
     }
 
+    # Build inter-procedural summaries once for the entire project.
+    summaries = build_summaries(cfg_project)
+
+    # Build a lookup from file path → FileAnalysis for import resolution.
+    file_analysis_by_path = {fa.path: fa for fa in project.file_analyses}
+
     for file_cfg in cfg_project.files:
+        file_analysis = file_analysis_by_path.get(file_cfg.path)
+        callee_resolver = (
+            _build_callee_resolver(file_analysis, summaries)
+            if file_analysis is not None
+            else None
+        )
+
         for function_cfg in file_cfg.functions:
             for block_id, acquire in _find_acquire_blocks(function_cfg):
                 if acquire.target is None:
@@ -368,6 +440,8 @@ def lifecycle_findings(
                     acquire.target,
                     acquire.line,
                     acquire.column,
+                    summaries=summaries,
+                    callee_resolver=callee_resolver,
                 )
                 state = aggregate_resource_results(results)
                 if state in (ResourceState.CLOSED, ResourceState.ESCAPED):

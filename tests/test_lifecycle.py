@@ -7,6 +7,7 @@ from leakguard.lifecycle import (
     ResourceState,
     analyze_function,
     aggregate_resource_results,
+    lifecycle_findings,
     resource_confidence,
 )
 
@@ -297,3 +298,64 @@ def example():
 
     assert len(results) >= 1
     assert any(result.state == ResourceState.OPEN for result in results)
+
+
+# --- Inter-procedural tests ---
+
+def test_same_file_helper_closes_resource(tmp_path: Path):
+    """A helper function in the same file that closes the argument is not a leak."""
+    source = """
+def close_it(f):
+    f.close()
+
+def go():
+    f = open("x.txt")
+    close_it(f)
+"""
+    (tmp_path / "sample.py").write_text(source)
+    findings = analyze_project(tmp_path)
+    assert findings == [], f"Expected no findings, got: {findings}"
+
+
+def test_cross_file_helper_closes_resource(tmp_path: Path):
+    """A helper in a different file that closes the argument is not a leak."""
+    (tmp_path / "helpers.py").write_text(
+        "def close_file(f):\n    f.close()\n"
+    )
+    (tmp_path / "main.py").write_text(
+        "from helpers import close_file\n\ndef go():\n    f = open('x.txt')\n    close_file(f)\n"
+    )
+    findings = analyze_project(tmp_path)
+    assert findings == [], f"Expected no findings, got: {findings}"
+
+
+def test_partial_helper_still_leaks(tmp_path: Path):
+    """A helper that only sometimes closes is still a leak."""
+    source = """
+def maybe_close(f, should_close):
+    if should_close:
+        f.close()
+
+def go():
+    f = open("x.txt")
+    maybe_close(f, True)
+"""
+    (tmp_path / "sample.py").write_text(source)
+    findings = analyze_project(tmp_path)
+    # maybe_close doesn't close on all paths → still UNKNOWN → warning/unknown finding
+    assert any(f.resource_type == "file" for f in findings), \
+        "Expected a finding since helper doesn't always close"
+
+
+def test_unknown_external_callee_remains_unknown(tmp_path: Path):
+    """Passing to an external (unresolvable) function stays UNKNOWN, not a false positive."""
+    source = """
+def go():
+    f = open("x.txt")
+    process(f)
+"""
+    (tmp_path / "sample.py").write_text(source)
+    findings = analyze_project(tmp_path)
+    # UNKNOWN confidence → no DEFINITE_LEAK finding; at most a warning
+    definite = [f for f in findings if f.status.value == "DEFINITE_LEAK"]
+    assert definite == [], f"Should not be DEFINITE_LEAK for unknown callee, got: {definite}"

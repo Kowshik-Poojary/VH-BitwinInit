@@ -4,6 +4,29 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Demonstrates that inter-procedural analysis correctly passes for safe cross-file patterns.
+  interproc-safe-demo:
+    name: Inter-procedural Safe Scan (Should Pass)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run LeakGuard on Inter-procedural Sample (Expected to Pass)
+        uses: ./
+        with:
+          path: "samples/leaky_demo/inter"
+          format: "sarif"
+          output: "interproc-clean.sarif"
+          fail-on: "error"
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "interproc-clean.sarif"
+
+  # Demonstrates that real leaks in the full leaky_demo folder still fail CI.
   leakguard-fail-demo:
     name: Block Build on Leaks Demo
     runs-on: ubuntu-latest
