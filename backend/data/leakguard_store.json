@@ -1,0 +1,1945 @@
+{
+  "users": [
+    {
+      "_id": "user_1",
+      "name": "Ava Thompson"
+    },
+    {
+      "_id": "user_2",
+      "name": "Liam Chen"
+    },
+    {
+      "_id": "user_3",
+      "name": "Sofia Martinez"
+    },
+    {
+      "_id": "user_4",
+      "name": "Noah Patel"
+    },
+    {
+      "_id": "user_5",
+      "name": "Maya Ivanova"
+    },
+    {
+      "_id": "user_6",
+      "name": "Ethan Wright"
+    },
+    {
+      "_id": "user_7",
+      "name": "Priya Raman"
+    },
+    {
+      "_id": "user_8",
+      "name": "Lucas Silva"
+    },
+    {
+      "_id": "user_9",
+      "name": "Hana Suzuki"
+    },
+    {
+      "_id": "user_10",
+      "name": "Oscar Kowalski"
+    },
+    {
+      "_id": "admin",
+      "username": "admin",
+      "name": "Alex Mercer (Security Lead)",
+      "role": "admin",
+      "email": "admin@leakguard.dev",
+      "password_hash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+      "avatar": "\ud83d\udee1\ufe0f",
+      "badge": "Admin"
+    },
+    {
+      "_id": "alice",
+      "username": "alice",
+      "name": "Alice Vance (Platform Dev)",
+      "role": "developer",
+      "email": "alice@leakguard.dev",
+      "password_hash": "4e40e8ffe0ee32fa53e139147ed559229a5930f89c2204706fc174beb36210b3",
+      "avatar": "\ud83d\udc69\u200d\ud83d\udcbb",
+      "badge": "Developer"
+    },
+    {
+      "_id": "bob",
+      "username": "bob",
+      "name": "Bob Miller (Core Backend)",
+      "role": "developer",
+      "email": "bob@leakguard.dev",
+      "password_hash": "8d059c3640b97180dd2ee453e20d34ab0cb0f2eccbe87d01915a8e578a202b11",
+      "avatar": "\ud83d\udc68\u200d\ud83d\udcbb",
+      "badge": "Developer"
+    },
+    {
+      "_id": "charlie",
+      "username": "charlie",
+      "name": "Charlie Davis (Microservices)",
+      "role": "developer",
+      "email": "charlie@leakguard.dev",
+      "password_hash": "1afda89737a745f15d42807d54f67c803727d75ce443b0f3a659531b38ae660f",
+      "avatar": "\ud83e\uddd1\u200d\ud83d\udd2c",
+      "badge": "Developer"
+    },
+    {
+      "_id": "Kowshik-Poojary",
+      "username": "Kowshik-Poojary",
+      "name": "Kowshik Poojary (Repo Owner & Admin)",
+      "role": "admin",
+      "email": "chandrapoojary1975@gmail.com",
+      "github_url": "https://github.com/Kowshik-Poojary",
+      "avatar": "https://github.com/Kowshik-Poojary.png",
+      "badge": "Admin"
+    },
+    {
+      "_id": "vinayakpotdar79",
+      "username": "vinayakpotdar79",
+      "name": "Vinayak Potdar (Developer)",
+      "role": "developer",
+      "email": "vinayakpotdar7977@gmail.com",
+      "github_url": "https://github.com/vinayakpotdar79",
+      "avatar": "https://github.com/vinayakpotdar79.png",
+      "badge": "Developer"
+    },
+    {
+      "_id": "Nikhil-2x",
+      "username": "Nikhil-2x",
+      "name": "Nikhil Yadav (Developer)",
+      "role": "developer",
+      "email": "nikhilyadav101513@gmail.com",
+      "github_url": "https://github.com/Nikhil-2x",
+      "avatar": "https://github.com/Nikhil-2x.png",
+      "badge": "Developer"
+    },
+    {
+      "_id": "Rohit-Khaire",
+      "username": "Rohit-Khaire",
+      "name": "Rohit Khaire (Developer)",
+      "role": "developer",
+      "email": "athlius31@gmail.com",
+      "github_url": "https://github.com/Rohit-Khaire",
+      "avatar": "https://github.com/Rohit-Khaire.png",
+      "badge": "Developer"
+    }
+  ],
+  "action_runs": [
+    {
+      "repo": "demo-org/inventory-service",
+      "pr_number": 101,
+      "sha": "deadbeef",
+      "user_id": "user_1",
+      "conclusion": "fail",
+      "summary": {
+        "total": 2,
+        "errors": 2,
+        "warnings": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R003",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 42, no close() found before exit at line 47",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "db",
+          "location": {
+            "file": "app/db/connection.py",
+            "line": 42,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 18, no close() found on exception path at line 24",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "app/services/export.py",
+            "line": 18,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        }
+      ],
+      "received_at": "2026-08-22T01:13:08.608234+00:00",
+      "_id": "f6a59cce-b584-49f3-b219-d3e50a9815aa"
+    },
+    {
+      "repo": "demo-org/inventory-service",
+      "pr_number": 104,
+      "sha": "deadbeef",
+      "user_id": "user_2",
+      "conclusion": "fail",
+      "summary": {
+        "total": 3,
+        "errors": 3,
+        "warnings": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R003",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 42, no close() found before exit at line 47",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "db",
+          "location": {
+            "file": "app/db/connection.py",
+            "line": 42,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 18, no close() found on exception path at line 24",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "app/services/export.py",
+            "line": 18,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "rule_id": "LKG-R004",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 9, no close() found before exit at line 15",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "tempfile",
+          "location": {
+            "file": "app/utils/tempcache.py",
+            "line": 9,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "MEDIUM"
+          }
+        }
+      ],
+      "received_at": "2026-08-25T01:13:08.608234+00:00",
+      "_id": "296e3874-5c32-455f-972a-7fcc32bc8760"
+    },
+    {
+      "repo": "demo-org/inventory-service",
+      "pr_number": null,
+      "sha": "deadbeef",
+      "user_id": "user_3",
+      "conclusion": "fail",
+      "summary": {
+        "total": 3,
+        "errors": 3,
+        "warnings": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R003",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 42, no close() found before exit at line 47",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "db",
+          "location": {
+            "file": "app/db/connection.py",
+            "line": 42,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 18, no close() found on exception path at line 24",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "app/services/export.py",
+            "line": 18,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "rule_id": "LKG-R004",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 9, no close() found before exit at line 15",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "tempfile",
+          "location": {
+            "file": "app/utils/tempcache.py",
+            "line": 9,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "MEDIUM"
+          }
+        }
+      ],
+      "received_at": "2026-08-27T01:13:08.608234+00:00",
+      "_id": "5a15188b-34e5-4d5a-83ca-aaff20912630"
+    },
+    {
+      "repo": "demo-org/inventory-service",
+      "pr_number": 110,
+      "sha": "deadbeef",
+      "user_id": "user_4",
+      "conclusion": "fail",
+      "summary": {
+        "total": 3,
+        "errors": 3,
+        "warnings": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R003",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 42, no close() found before exit at line 47",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "db",
+          "location": {
+            "file": "app/db/connection.py",
+            "line": 42,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "rule_id": "LKG-R004",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 9, no close() found before exit at line 15",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "tempfile",
+          "location": {
+            "file": "app/utils/tempcache.py",
+            "line": 9,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "MEDIUM"
+          }
+        },
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 55, no close() found on return path at line 60",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "app/services/export.py",
+            "line": 55,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        }
+      ],
+      "received_at": "2026-08-30T01:13:08.608234+00:00",
+      "_id": "5ad26f7d-7898-40d5-8e64-adb8b3424b5f"
+    },
+    {
+      "repo": "demo-org/inventory-service",
+      "pr_number": 115,
+      "sha": "deadbeef",
+      "user_id": "user_5",
+      "conclusion": "fail",
+      "summary": {
+        "total": 2,
+        "errors": 2,
+        "warnings": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R004",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 9, no close() found before exit at line 15",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "tempfile",
+          "location": {
+            "file": "app/utils/tempcache.py",
+            "line": 9,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "MEDIUM"
+          }
+        },
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 55, no close() found on return path at line 60",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "app/services/export.py",
+            "line": 55,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        }
+      ],
+      "received_at": "2026-09-02T01:13:08.608234+00:00",
+      "_id": "0583b741-04a4-4ae9-a32a-4bbde6acc6d8"
+    },
+    {
+      "repo": "demo-org/inventory-service",
+      "pr_number": 118,
+      "sha": "deadbeef",
+      "user_id": "user_6",
+      "conclusion": "fail",
+      "summary": {
+        "total": 2,
+        "errors": 2,
+        "warnings": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 55, no close() found on return path at line 60",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "app/services/export.py",
+            "line": 55,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "rule_id": "LKG-R003",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 80, no close() found before exit at line 88",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "db",
+          "location": {
+            "file": "app/db/connection.py",
+            "line": 80,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        }
+      ],
+      "received_at": "2026-09-04T01:13:08.608234+00:00",
+      "_id": "31f88670-2097-4b38-87dd-b069b6a27efb"
+    },
+    {
+      "repo": "demo-org/payment-gateway",
+      "pr_number": 55,
+      "sha": "deadbeef",
+      "user_id": "user_7",
+      "conclusion": "fail",
+      "summary": {
+        "total": 2,
+        "errors": 2,
+        "warnings": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R002",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 30, no close() found before exit at line 36",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "socket",
+          "location": {
+            "file": "gateway/socket_client.py",
+            "line": 30,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 12, no close() found on exception path at line 19",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "gateway/ledger.py",
+            "line": 12,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        }
+      ],
+      "received_at": "2026-08-26T01:13:08.608234+00:00",
+      "_id": "b24f1ac6-ebaf-4aa2-a712-51f203db6edf"
+    },
+    {
+      "repo": "demo-org/payment-gateway",
+      "pr_number": 58,
+      "sha": "deadbeef",
+      "user_id": "user_8",
+      "conclusion": "fail",
+      "summary": {
+        "total": 2,
+        "errors": 2,
+        "warnings": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R002",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 30, no close() found before exit at line 36",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "socket",
+          "location": {
+            "file": "gateway/socket_client.py",
+            "line": 30,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "HIGH"
+          }
+        },
+        {
+          "rule_id": "LKG-R004",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 5, no close() found before exit at line 11",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "tempfile",
+          "location": {
+            "file": "gateway/report_writer.py",
+            "line": 5,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "LOW"
+          }
+        }
+      ],
+      "received_at": "2026-08-29T01:13:08.608234+00:00",
+      "_id": "a2608946-ef59-466c-80e2-7ac8a1e19e15"
+    },
+    {
+      "repo": "demo-org/payment-gateway",
+      "pr_number": 61,
+      "sha": "deadbeef",
+      "user_id": "user_9",
+      "conclusion": "fail",
+      "summary": {
+        "total": 1,
+        "errors": 1,
+        "warnings": 0,
+        "info": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R004",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 5, no close() found before exit at line 11",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "tempfile",
+          "location": {
+            "file": "gateway/report_writer.py",
+            "line": 5,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "confidence": "LOW"
+          }
+        }
+      ],
+      "received_at": "2026-09-01T01:13:08.608234+00:00",
+      "_id": "4ba75477-1a29-4254-bafd-eb2a92918dca"
+    },
+    {
+      "repo": "demo-org/payment-gateway",
+      "pr_number": null,
+      "sha": "deadbeef",
+      "user_id": "user_10",
+      "conclusion": "pass",
+      "summary": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0
+      },
+      "findings": [],
+      "received_at": "2026-09-04T01:13:08.608234+00:00",
+      "_id": "4585431c-8891-42aa-b416-dedb1c31a94d"
+    }
+  ],
+  "repo_issues": [
+    {
+      "_id": "demo-org/inventory-service::3e4de8dd9b43541c",
+      "repo": "demo-org/inventory-service",
+      "fingerprint": "3e4de8dd9b43541c",
+      "rule_id": "LKG-R003",
+      "file": "app/db/connection.py",
+      "line": 42,
+      "message": "opened at line 42, no close() found before exit at line 47",
+      "first_seen_run_id": "f6a59cce-b584-49f3-b219-d3e50a9815aa",
+      "first_seen_user_id": "user_1",
+      "first_seen_at": "2026-08-22T01:13:08.608234+00:00"
+    },
+    {
+      "_id": "demo-org/inventory-service::c7b5d4a58cf9f715",
+      "repo": "demo-org/inventory-service",
+      "fingerprint": "c7b5d4a58cf9f715",
+      "rule_id": "LKG-R001",
+      "file": "app/services/export.py",
+      "line": 18,
+      "message": "opened at line 18, no close() found on exception path at line 24",
+      "first_seen_run_id": "f6a59cce-b584-49f3-b219-d3e50a9815aa",
+      "first_seen_user_id": "user_1",
+      "first_seen_at": "2026-08-22T01:13:08.608234+00:00"
+    },
+    {
+      "_id": "demo-org/inventory-service::4817aeb0c775d2e1",
+      "repo": "demo-org/inventory-service",
+      "fingerprint": "4817aeb0c775d2e1",
+      "rule_id": "LKG-R004",
+      "file": "app/utils/tempcache.py",
+      "line": 9,
+      "message": "opened at line 9, no close() found before exit at line 15",
+      "first_seen_run_id": "296e3874-5c32-455f-972a-7fcc32bc8760",
+      "first_seen_user_id": "user_2",
+      "first_seen_at": "2026-08-25T01:13:08.608234+00:00"
+    },
+    {
+      "_id": "demo-org/inventory-service::845f5e490d1f09db",
+      "repo": "demo-org/inventory-service",
+      "fingerprint": "845f5e490d1f09db",
+      "rule_id": "LKG-R001",
+      "file": "app/services/export.py",
+      "line": 55,
+      "message": "opened at line 55, no close() found on return path at line 60",
+      "first_seen_run_id": "5ad26f7d-7898-40d5-8e64-adb8b3424b5f",
+      "first_seen_user_id": "user_4",
+      "first_seen_at": "2026-08-30T01:13:08.608234+00:00"
+    },
+    {
+      "_id": "demo-org/inventory-service::3ab748e3ac56395c",
+      "repo": "demo-org/inventory-service",
+      "fingerprint": "3ab748e3ac56395c",
+      "rule_id": "LKG-R003",
+      "file": "app/db/connection.py",
+      "line": 80,
+      "message": "opened at line 80, no close() found before exit at line 88",
+      "first_seen_run_id": "31f88670-2097-4b38-87dd-b069b6a27efb",
+      "first_seen_user_id": "user_6",
+      "first_seen_at": "2026-09-04T01:13:08.608234+00:00"
+    },
+    {
+      "_id": "demo-org/payment-gateway::88ab6c38037743e7",
+      "repo": "demo-org/payment-gateway",
+      "fingerprint": "88ab6c38037743e7",
+      "rule_id": "LKG-R002",
+      "file": "gateway/socket_client.py",
+      "line": 30,
+      "message": "opened at line 30, no close() found before exit at line 36",
+      "first_seen_run_id": "b24f1ac6-ebaf-4aa2-a712-51f203db6edf",
+      "first_seen_user_id": "user_7",
+      "first_seen_at": "2026-08-26T01:13:08.608234+00:00"
+    },
+    {
+      "_id": "demo-org/payment-gateway::ed2296067f988c5a",
+      "repo": "demo-org/payment-gateway",
+      "fingerprint": "ed2296067f988c5a",
+      "rule_id": "LKG-R001",
+      "file": "gateway/ledger.py",
+      "line": 12,
+      "message": "opened at line 12, no close() found on exception path at line 19",
+      "first_seen_run_id": "b24f1ac6-ebaf-4aa2-a712-51f203db6edf",
+      "first_seen_user_id": "user_7",
+      "first_seen_at": "2026-08-26T01:13:08.608234+00:00"
+    },
+    {
+      "_id": "demo-org/payment-gateway::ed231a78efe1ef1a",
+      "repo": "demo-org/payment-gateway",
+      "fingerprint": "ed231a78efe1ef1a",
+      "rule_id": "LKG-R004",
+      "file": "gateway/report_writer.py",
+      "line": 5,
+      "message": "opened at line 5, no close() found before exit at line 11",
+      "first_seen_run_id": "a2608946-ef59-466c-80e2-7ac8a1e19e15",
+      "first_seen_user_id": "user_8",
+      "first_seen_at": "2026-08-29T01:13:08.608234+00:00"
+    }
+  ],
+  "branches": [
+    {
+      "_id": "branch_alice_1",
+      "repo": "demo-org/payment-gateway",
+      "branch": "feature/payment-sync",
+      "pr_number": 55,
+      "pr_title": "Real-time Stripe payment webhook sync",
+      "user_id": "alice",
+      "user_name": "Alice Vance",
+      "sha": "7f8b91a",
+      "status": "PASSED",
+      "gate_status": "PASSED",
+      "sample_path": "samples/leaky_demo/01_open_no_close.py",
+      "summary": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0
+      },
+      "findings": [],
+      "logs": [
+        "[CI] Triggered on push to branch 'feature/payment-sync' (PR #55)",
+        "[AST] Analyzing abstract syntax trees in gateway/...",
+        "[CFG] Built 8 control flow graphs covering 24 branching paths",
+        "[LIFECYCLE] Evaluated resource lifecycles: 2 unclosed paths detected",
+        "[GATEKEEPER] Status: WARNED. 2 resource leak(s) require remediation before merge.",
+        "[2026-09-05T01:28:21.335441+00:00] \ud83d\uded1 MERGE BLOCKED: Attempted merge with 2 unresolved blocking resource leak(s)!",
+        "[2026-09-05T01:29:32.934109+00:00] \ud83d\udd27 Patch verified: Unclosed handles wrapped in context manager. All paths safe!",
+        "[2026-09-05T01:45:56.733176+00:00] \ud83d\udfe2 MERGE APPROVED: All static resource checks verified."
+      ],
+      "updated_at": "2026-09-05T01:45:56.733176+00:00"
+    },
+    {
+      "_id": "branch_bob_1",
+      "repo": "demo-org/inventory-service",
+      "branch": "fix/tempfile-cache",
+      "pr_number": 115,
+      "pr_title": "Buffer cache export to tempfiles",
+      "user_id": "bob",
+      "user_name": "Bob Miller",
+      "sha": "c3e9812",
+      "status": "WARNED",
+      "gate_status": "WARNED",
+      "sample_path": "samples/leaky_demo/09_tempfile_no_close.py",
+      "summary": {
+        "total": 1,
+        "errors": 1,
+        "warnings": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R004",
+          "severity": "ERROR",
+          "message": "NamedTemporaryFile(delete=False) acquired at line 9, no close() before function exit",
+          "resource_type": "tempfile",
+          "location": {
+            "file": "app/utils/tempcache.py",
+            "line": 9,
+            "column": 4
+          },
+          "details": {
+            "confidence": "HIGH",
+            "path_trace": [
+              {
+                "file": "app/utils/tempcache.py",
+                "line": 9,
+                "event": "ACQUIRE: tmp = tempfile.NamedTemporaryFile(delete=False)"
+              },
+              {
+                "file": "app/utils/tempcache.py",
+                "line": 11,
+                "event": "WRITE: tmp.write(data)"
+              },
+              {
+                "file": "app/utils/tempcache.py",
+                "line": 15,
+                "event": "EXIT: function exits without closing tmp"
+              }
+            ]
+          }
+        }
+      ],
+      "logs": [
+        "[CI] Triggered on PR #115 synchronized",
+        "[AST] Discovered NamedTemporaryFile acquisition with delete=False",
+        "[CFG] Path trace reveals handle remains open on function exit",
+        "[GATEKEEPER] Status: WARNED. Resource leak detected."
+      ],
+      "updated_at": "2026-09-05T01:19:36.533563+00:00"
+    },
+    {
+      "_id": "branch_charlie_1",
+      "repo": "demo-org/inventory-service",
+      "branch": "refactor/clean-export",
+      "pr_number": 119,
+      "pr_title": "Safely refactor export handles with context managers",
+      "user_id": "charlie",
+      "user_name": "Charlie Davis",
+      "sha": "2a149de",
+      "status": "PASSED",
+      "gate_status": "PASSED",
+      "sample_path": "samples/leaky_demo/05_open_with_safe.py",
+      "summary": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0
+      },
+      "findings": [],
+      "logs": [
+        "[CI] Triggered on push to branch 'refactor/clean-export'",
+        "[AST] Parsed with-blocks and try/finally cleanup handlers",
+        "[CFG] All 14 execution paths guarantee deterministic close()",
+        "[LIFECYCLE] Zero resource leaks detected.",
+        "[GATEKEEPER] Status: PASSED. Safe to merge!"
+      ],
+      "updated_at": "2026-09-05T01:19:36.533573+00:00"
+    },
+    {
+      "_id": "branch_dev-vinayak",
+      "repo": "Kowshik-Poojary/VH-BitwinInit",
+      "branch": "dev-vinayak",
+      "pr_number": 4,
+      "pr_title": "feat: Add YAML support for resource rules and starter pack",
+      "user_id": "vinayakpotdar79",
+      "user_name": "Vinayak Potdar",
+      "avatar": "https://github.com/vinayakpotdar79.png",
+      "sha": "6ab5452",
+      "status": "WARNED",
+      "gate_status": "WARNED",
+      "scan_target": "samples/leaky_demo",
+      "summary": {
+        "total": 6,
+        "errors": 6,
+        "warnings": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 5, no close() found on return path at line 8",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "samples/leaky_demo/01_open_no_close.py",
+            "line": 5,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "f",
+            "confidence": "HIGH",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 5,
+                "column": 4,
+                "event": "ACQUIRE f",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 5,
+                "column": 4,
+                "event": "f = open(path, 'r')",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 5,
+                "column": 8,
+                "event": "open",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 6,
+                "column": 4,
+                "event": "data = f.read()",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 6,
+                "column": 11,
+                "event": "f.read",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 8,
+                "column": 4,
+                "event": "return data",
+                "kind": "RETURN"
+              }
+            ],
+            "paths": [
+              {
+                "state": "OPEN",
+                "blocks": [
+                  2,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 5, no close() found on return path at line 7",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "samples/leaky_demo/02_open_early_return.py",
+            "line": 5,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "f",
+            "confidence": "MEDIUM",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/02_open_early_return.py",
+                "line": 5,
+                "column": 4,
+                "event": "ACQUIRE f",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/02_open_early_return.py",
+                "line": 5,
+                "column": 4,
+                "event": "f = open(path, 'r')",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/02_open_early_return.py",
+                "line": 5,
+                "column": 8,
+                "event": "open",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/02_open_early_return.py",
+                "line": 6,
+                "column": 4,
+                "event": "IF",
+                "kind": "CONTROL_FLOW"
+              },
+              {
+                "file": "samples/leaky_demo/02_open_early_return.py",
+                "line": 7,
+                "column": 8,
+                "event": "return None",
+                "kind": "RETURN"
+              }
+            ],
+            "paths": [
+              {
+                "state": "OPEN",
+                "blocks": [
+                  2,
+                  3,
+                  4,
+                  0
+                ]
+              },
+              {
+                "state": "CLOSED",
+                "blocks": [
+                  2,
+                  3,
+                  5,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 5, no close() found on return path at line 8",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "samples/leaky_demo/03_open_try_except_leak.py",
+            "line": 5,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "f",
+            "confidence": "MEDIUM",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 5,
+                "column": 4,
+                "event": "ACQUIRE f",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 5,
+                "column": 4,
+                "event": "f = open(path, 'r')",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 5,
+                "column": 8,
+                "event": "open",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 6,
+                "column": 4,
+                "event": "TRY",
+                "kind": "CONTROL_FLOW"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 7,
+                "column": 8,
+                "event": "data = f.read()",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 7,
+                "column": 15,
+                "event": "f.read",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 8,
+                "column": 8,
+                "event": "return data",
+                "kind": "RETURN"
+              }
+            ],
+            "paths": [
+              {
+                "state": "OPEN",
+                "blocks": [
+                  2,
+                  3,
+                  0
+                ]
+              },
+              {
+                "state": "CLOSED",
+                "blocks": [
+                  2,
+                  5,
+                  6,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "rule_id": "LKG-R002",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 9, no close() found before exit at line 11",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "socket",
+          "location": {
+            "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+            "line": 9,
+            "column": 8,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "s",
+            "confidence": "MEDIUM",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+                "line": 9,
+                "column": 8,
+                "event": "ACQUIRE s",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+                "line": 9,
+                "column": 8,
+                "event": "s = socket.socket()",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+                "line": 9,
+                "column": 12,
+                "event": "socket.socket",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+                "line": 10,
+                "column": 8,
+                "event": "s.connect",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+                "line": 11,
+                "column": 4,
+                "event": "IF",
+                "kind": "CONTROL_FLOW"
+              }
+            ],
+            "paths": [
+              {
+                "state": "CLOSED",
+                "blocks": [
+                  5,
+                  3,
+                  4,
+                  6,
+                  7,
+                  8,
+                  0
+                ]
+              },
+              {
+                "state": "OPEN",
+                "blocks": [
+                  5,
+                  3,
+                  4,
+                  6,
+                  8,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "rule_id": "LKG-R004",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 7, no close() found on return path at line 9",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "tempfile",
+          "location": {
+            "file": "samples/leaky_demo/09_tempfile_no_close.py",
+            "line": 7,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "tmp",
+            "confidence": "HIGH",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/09_tempfile_no_close.py",
+                "line": 7,
+                "column": 4,
+                "event": "ACQUIRE tmp",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/09_tempfile_no_close.py",
+                "line": 7,
+                "column": 4,
+                "event": "tmp = tempfile.NamedTemporaryFile(delete=False)",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/09_tempfile_no_close.py",
+                "line": 7,
+                "column": 10,
+                "event": "tempfile.NamedTemporaryFile",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/09_tempfile_no_close.py",
+                "line": 8,
+                "column": 4,
+                "event": "tmp.write",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/09_tempfile_no_close.py",
+                "line": 9,
+                "column": 4,
+                "event": "return tmp.name",
+                "kind": "RETURN"
+              }
+            ],
+            "paths": [
+              {
+                "state": "OPEN",
+                "blocks": [
+                  2,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "rule_id": "LKG-R003",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 14, no close() found before exit at line 16",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "database",
+          "location": {
+            "file": "samples/leaky_demo/10_trick_cases.py",
+            "line": 14,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "conn",
+            "confidence": "HIGH",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 14,
+                "column": 4,
+                "event": "ACQUIRE conn",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 14,
+                "column": 4,
+                "event": "conn = db.connect(db_file)",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 14,
+                "column": 11,
+                "event": "db.connect",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 15,
+                "column": 4,
+                "event": "cursor = conn.cursor()",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 15,
+                "column": 13,
+                "event": "conn.cursor",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 16,
+                "column": 4,
+                "event": "cursor.execute",
+                "kind": "CALL_PASS"
+              }
+            ],
+            "paths": [
+              {
+                "state": "OPEN",
+                "blocks": [
+                  2,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "logs": [
+        "[GIT] Synchronized branch 'dev-vinayak' from GitHub (commit 6ab5452)",
+        "[COMMIT] feat: Add YAML support for resource rules and include reusable starter pack",
+        "[AST] Analyzed 6 findings across samples/leaky_demo",
+        "[GATEKEEPER] Initial status: WARNED"
+      ],
+      "updated_at": "2026-09-04T18:59:29+05:30"
+    },
+    {
+      "_id": "branch_pre-build",
+      "repo": "Kowshik-Poojary/VH-BitwinInit",
+      "branch": "pre-build",
+      "pr_number": 3,
+      "pr_title": "Add pre-commit hook for LeakGuard and multi-path CLI support",
+      "user_id": "Nikhil-2x",
+      "user_name": "Nikhil Yadav",
+      "avatar": "https://github.com/Nikhil-2x.png",
+      "sha": "0803bf5",
+      "status": "PASSED",
+      "gate_status": "PASSED",
+      "scan_target": "samples/leaky_demo/inter",
+      "summary": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0
+      },
+      "findings": [],
+      "logs": [
+        "[GIT] Synchronized branch 'pre-build' from GitHub (commit 0803bf5)",
+        "[COMMIT] Add pre-commit hook for LeakGuard and update CLI to support multiple paths",
+        "[AST] Analyzed 0 findings across samples/leaky_demo/inter",
+        "[GATEKEEPER] Initial status: PASSED"
+      ],
+      "updated_at": "2026-09-05T00:12:43+05:30"
+    },
+    {
+      "_id": "branch_temp-test",
+      "repo": "Kowshik-Poojary/VH-BitwinInit",
+      "branch": "temp-test",
+      "pr_number": 2,
+      "pr_title": "test fail: move leak test file to verify CI gatekeeper blocks",
+      "user_id": "Rohit-Khaire",
+      "user_name": "Rohit Khaire",
+      "avatar": "https://github.com/Rohit-Khaire.png",
+      "sha": "a68de79",
+      "status": "WARNED",
+      "gate_status": "WARNED",
+      "scan_target": "samples/leaky_demo",
+      "summary": {
+        "total": 6,
+        "errors": 6,
+        "warnings": 0
+      },
+      "findings": [
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 5, no close() found on return path at line 8",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "samples/leaky_demo/01_open_no_close.py",
+            "line": 5,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "f",
+            "confidence": "HIGH",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 5,
+                "column": 4,
+                "event": "ACQUIRE f",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 5,
+                "column": 4,
+                "event": "f = open(path, 'r')",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 5,
+                "column": 8,
+                "event": "open",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 6,
+                "column": 4,
+                "event": "data = f.read()",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 6,
+                "column": 11,
+                "event": "f.read",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/01_open_no_close.py",
+                "line": 8,
+                "column": 4,
+                "event": "return data",
+                "kind": "RETURN"
+              }
+            ],
+            "paths": [
+              {
+                "state": "OPEN",
+                "blocks": [
+                  2,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 5, no close() found on return path at line 7",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "samples/leaky_demo/02_open_early_return.py",
+            "line": 5,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "f",
+            "confidence": "MEDIUM",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/02_open_early_return.py",
+                "line": 5,
+                "column": 4,
+                "event": "ACQUIRE f",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/02_open_early_return.py",
+                "line": 5,
+                "column": 4,
+                "event": "f = open(path, 'r')",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/02_open_early_return.py",
+                "line": 5,
+                "column": 8,
+                "event": "open",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/02_open_early_return.py",
+                "line": 6,
+                "column": 4,
+                "event": "IF",
+                "kind": "CONTROL_FLOW"
+              },
+              {
+                "file": "samples/leaky_demo/02_open_early_return.py",
+                "line": 7,
+                "column": 8,
+                "event": "return None",
+                "kind": "RETURN"
+              }
+            ],
+            "paths": [
+              {
+                "state": "OPEN",
+                "blocks": [
+                  2,
+                  3,
+                  4,
+                  0
+                ]
+              },
+              {
+                "state": "CLOSED",
+                "blocks": [
+                  2,
+                  3,
+                  5,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "rule_id": "LKG-R001",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 5, no close() found on return path at line 8",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "file",
+          "location": {
+            "file": "samples/leaky_demo/03_open_try_except_leak.py",
+            "line": 5,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "f",
+            "confidence": "MEDIUM",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 5,
+                "column": 4,
+                "event": "ACQUIRE f",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 5,
+                "column": 4,
+                "event": "f = open(path, 'r')",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 5,
+                "column": 8,
+                "event": "open",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 6,
+                "column": 4,
+                "event": "TRY",
+                "kind": "CONTROL_FLOW"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 7,
+                "column": 8,
+                "event": "data = f.read()",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 7,
+                "column": 15,
+                "event": "f.read",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/03_open_try_except_leak.py",
+                "line": 8,
+                "column": 8,
+                "event": "return data",
+                "kind": "RETURN"
+              }
+            ],
+            "paths": [
+              {
+                "state": "OPEN",
+                "blocks": [
+                  2,
+                  3,
+                  0
+                ]
+              },
+              {
+                "state": "CLOSED",
+                "blocks": [
+                  2,
+                  5,
+                  6,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "rule_id": "LKG-R002",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 9, no close() found before exit at line 11",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "socket",
+          "location": {
+            "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+            "line": 9,
+            "column": 8,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "s",
+            "confidence": "MEDIUM",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+                "line": 9,
+                "column": 8,
+                "event": "ACQUIRE s",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+                "line": 9,
+                "column": 8,
+                "event": "s = socket.socket()",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+                "line": 9,
+                "column": 12,
+                "event": "socket.socket",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+                "line": 10,
+                "column": 8,
+                "event": "s.connect",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/08_socket_loop_reassign_leak.py",
+                "line": 11,
+                "column": 4,
+                "event": "IF",
+                "kind": "CONTROL_FLOW"
+              }
+            ],
+            "paths": [
+              {
+                "state": "CLOSED",
+                "blocks": [
+                  5,
+                  3,
+                  4,
+                  6,
+                  7,
+                  8,
+                  0
+                ]
+              },
+              {
+                "state": "OPEN",
+                "blocks": [
+                  5,
+                  3,
+                  4,
+                  6,
+                  8,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "rule_id": "LKG-R004",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 7, no close() found on return path at line 9",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "tempfile",
+          "location": {
+            "file": "samples/leaky_demo/09_tempfile_no_close.py",
+            "line": 7,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "tmp",
+            "confidence": "HIGH",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/09_tempfile_no_close.py",
+                "line": 7,
+                "column": 4,
+                "event": "ACQUIRE tmp",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/09_tempfile_no_close.py",
+                "line": 7,
+                "column": 4,
+                "event": "tmp = tempfile.NamedTemporaryFile(delete=False)",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/09_tempfile_no_close.py",
+                "line": 7,
+                "column": 10,
+                "event": "tempfile.NamedTemporaryFile",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/09_tempfile_no_close.py",
+                "line": 8,
+                "column": 4,
+                "event": "tmp.write",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/09_tempfile_no_close.py",
+                "line": 9,
+                "column": 4,
+                "event": "return tmp.name",
+                "kind": "RETURN"
+              }
+            ],
+            "paths": [
+              {
+                "state": "OPEN",
+                "blocks": [
+                  2,
+                  0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "rule_id": "LKG-R003",
+          "severity": "ERROR",
+          "category": "RESOURCE_LEAK",
+          "message": "opened at line 14, no close() found before exit at line 16",
+          "status": "DEFINITE_LEAK",
+          "resource_type": "database",
+          "location": {
+            "file": "samples/leaky_demo/10_trick_cases.py",
+            "line": 14,
+            "column": 4,
+            "end_line": null,
+            "end_column": null
+          },
+          "details": {
+            "variable": "conn",
+            "confidence": "HIGH",
+            "path_trace": [
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 14,
+                "column": 4,
+                "event": "ACQUIRE conn",
+                "kind": "ACQUIRE"
+              },
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 14,
+                "column": 4,
+                "event": "conn = db.connect(db_file)",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 14,
+                "column": 11,
+                "event": "db.connect",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 15,
+                "column": 4,
+                "event": "cursor = conn.cursor()",
+                "kind": "ASSIGN"
+              },
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 15,
+                "column": 13,
+                "event": "conn.cursor",
+                "kind": "CALL_PASS"
+              },
+              {
+                "file": "samples/leaky_demo/10_trick_cases.py",
+                "line": 16,
+                "column": 4,
+                "event": "cursor.execute",
+                "kind": "CALL_PASS"
+              }
+            ],
+            "paths": [
+              {
+                "state": "OPEN",
+                "blocks": [
+                  2,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "logs": [
+        "[GIT] Synchronized branch 'temp-test' from GitHub (commit a68de79)",
+        "[COMMIT] test fail: move leak test file into src/ so CI scan path covers it",
+        "[AST] Analyzed 6 findings across samples/leaky_demo",
+        "[GATEKEEPER] Initial status: WARNED"
+      ],
+      "updated_at": "2026-09-05T06:23:14+05:30"
+    },
+    {
+      "_id": "branch_dashboard",
+      "repo": "Kowshik-Poojary/VH-BitwinInit",
+      "branch": "dashboard",
+      "pr_number": 6,
+      "pr_title": "feat: Real-time UI dashboard and telemetry reporting",
+      "user_id": "Nikhil-2x",
+      "user_name": "Nikhil Yadav",
+      "avatar": "https://github.com/Nikhil-2x.png",
+      "sha": "4e30005",
+      "status": "PASSED",
+      "gate_status": "PASSED",
+      "scan_target": "src",
+      "summary": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0
+      },
+      "findings": [],
+      "logs": [
+        "[GIT] Synchronized branch 'dashboard' from GitHub (commit 4e30005)",
+        "[COMMIT] added backend apis for scanning url through fast api",
+        "[AST] Analyzed 0 findings across src",
+        "[GATEKEEPER] Initial status: PASSED"
+      ],
+      "updated_at": "2026-09-05T02:49:13+05:30"
+    },
+    {
+      "_id": "branch_main",
+      "repo": "Kowshik-Poojary/VH-BitwinInit",
+      "branch": "main",
+      "pr_number": 5,
+      "pr_title": "Merge core AST lifecycle engine & GitHub Action into main",
+      "user_id": "Kowshik-Poojary",
+      "user_name": "Kowshik Poojary",
+      "avatar": "https://github.com/Kowshik-Poojary.png",
+      "sha": "78f9519",
+      "status": "PASSED",
+      "gate_status": "PASSED",
+      "scan_target": "src",
+      "summary": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0
+      },
+      "findings": [],
+      "logs": [
+        "[GIT] Synchronized branch 'main' from GitHub (commit 78f9519)",
+        "[COMMIT] Merge pull request #5 from Kowshik-Poojary/Kowshik",
+        "[AST] Analyzed 0 findings across src",
+        "[GATEKEEPER] Initial status: PASSED"
+      ],
+      "updated_at": "2026-09-05T06:32:26+05:30"
+    },
+    {
+      "_id": "branch_Kowshik",
+      "repo": "Kowshik-Poojary/VH-BitwinInit",
+      "branch": "Kowshik",
+      "pr_number": 1,
+      "pr_title": "Deterministic intra-procedural CFG and lifecycle gatekeeper",
+      "user_id": "Kowshik-Poojary",
+      "user_name": "Kowshik Poojary",
+      "avatar": "https://github.com/Kowshik-Poojary.png",
+      "sha": "9e11276",
+      "status": "PASSED",
+      "gate_status": "PASSED",
+      "scan_target": "src",
+      "summary": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0
+      },
+      "findings": [],
+      "logs": [
+        "[GIT] Synchronized branch 'Kowshik' from GitHub (commit 9e11276)",
+        "[COMMIT] Merge remote-tracking branch 'origin/main' into Kowshik",
+        "[AST] Analyzed 0 findings across src",
+        "[GATEKEEPER] Initial status: PASSED"
+      ],
+      "updated_at": "2026-09-05T05:52:58+05:30"
+    }
+  ],
+  "scans": []
+}

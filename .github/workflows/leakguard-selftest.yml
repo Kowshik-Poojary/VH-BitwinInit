@@ -1,10 +1,10 @@
-name: LeakGuard Self-Test
+name: LeakGuard CI Gatekeeper (AST Resource Leak Verification)
 
 on:
   push:
-    branches: [ main, Kowshik ]
+    branches: [ "**" ]
   pull_request:
-    branches: [ main, Kowshik ]
+    branches: [ "**" ]
 
 jobs:
   test:
@@ -28,28 +28,43 @@ jobs:
         run: |
           pytest -v
 
-  action-check:
-    name: LeakGuard Action CI Run
+  ast-leak-gatekeeper:
+    name: AST Resource-Leak Gatekeeper (Warn -> Block)
     runs-on: ubuntu-latest
     needs: test
     permissions:
       contents: read
       security-events: write
+      pull-requests: write
       actions: read
     steps:
-      - name: Checkout Code
+      - name: Checkout Branch
         uses: actions/checkout@v4
 
-      - name: Run LeakGuard on Project
-        uses: ./
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install LeakGuard
+        run: |
+          pip install -e .
+
+      - name: Real-Time AST Verification & Warn Phase
+        id: leakguard_scan
+        continue-on-error: true
         env:
           LEAKGUARD_USER_ID: ${{ github.actor }}
-        with:
-          path: "src"
-          format: "sarif"
-          output: "leakguard.sarif"
-          fail-on: "error"
-          report-url: ${{ vars.LEAKGUARD_REPORT_URL }}
+        run: |
+          echo "::group::🔍 Running LeakGuard Deterministic AST & CFG Analysis..."
+          leakguard scan src \
+            --format sarif \
+            --output leakguard.sarif \
+            --fail-on error \
+            --min-confidence low \
+            --report-url "${{ vars.LEAKGUARD_REPORT_URL }}"
+          echo "SCAN_EXIT_CODE=$?" >> $GITHUB_ENV
+          echo "::endgroup::"
 
       - name: Upload SARIF to GitHub Security Tab
         uses: github/codeql-action/upload-sarif@v3
@@ -57,3 +72,13 @@ jobs:
         continue-on-error: true
         with:
           sarif_file: "leakguard.sarif"
+
+      - name: Gatekeeper Policy Evaluation (Hard Block on Unresolved Leaks)
+        if: always()
+        run: |
+          if [ "${{ steps.leakguard_scan.outcome }}" != "success" ]; then
+            echo "::error title=LeakGuard Gatekeeper Blocked::🛑 Critical unclosed resource leaks detected in branch '${{ github.ref_name }}'! Merge blocked until all unclosed handles are remediated."
+            exit 1
+          else
+            echo "::notice title=LeakGuard Gatekeeper Passed::✅ All execution paths verified: 0 resource leaks found. Merge approved!"
+          fi
