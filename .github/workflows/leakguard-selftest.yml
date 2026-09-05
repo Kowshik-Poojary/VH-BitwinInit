@@ -36,7 +36,7 @@ jobs:
       contents: read
       security-events: write
       actions: read
-      pull_request: write
+      pull_requests: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
