@@ -30,6 +30,10 @@ inputs:
     description: "Whether to post inline PR review comments when running in a pull request"
     required: false
     default: "true"
+  report-url:
+    description: "Base URL of a LeakGuard web backend to report this run's summary to, for the admin dashboard. Leave empty to skip."
+    required: false
+    default: ""
 
 runs:
   using: "docker"
@@ -45,3 +49,5 @@ runs:
     - "${{ inputs.fail-on }}"
     - "--min-confidence"
     - "${{ inputs.min-confidence }}"
+    - "--report-url"
+    - "${{ inputs.report-url }}"

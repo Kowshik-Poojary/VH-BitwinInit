@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
+from typing import Callable
 
 from leakguard.models import (
     AnalysisError,
@@ -23,6 +24,8 @@ from leakguard.scanner import ScanConfig, discover_python_files
 from leakguard.visitor import ProjectASTVisitor
 from leakguard.cfg import build_cfg
 from leakguard.lifecycle import lifecycle_findings
+
+ProgressCallback = Callable[[str, dict], None]
 
 
 def _path_to_module(file_path: Path, project_root: Path) -> str:
@@ -179,6 +182,7 @@ def analyze_project_structure(
     exclude_dirs: set[str] | None = None,
     exclude_patterns: list[str] | None = None,
     max_file_size: int | None = None,
+    on_progress: ProgressCallback | None = None,
 ) -> ProjectAnalysis:
     """Analyze project structure and return structured ProjectAnalysis."""
     total_start = time.perf_counter()
@@ -190,6 +194,9 @@ def analyze_project_structure(
         max_file_size=max_file_size,
     )
 
+    if on_progress:
+        on_progress("discovering_files", {})
+
     scan_start = time.perf_counter()
     if project_path.is_file():
         py_files = discover_python_files(project_path, config)
@@ -199,10 +206,22 @@ def analyze_project_structure(
         project_root = project_path
     scan_time_ms = (time.perf_counter() - scan_start) * 1000
 
+    if on_progress:
+        on_progress("discovered_files", {"count": len(py_files)})
+
     file_analyses: list[FileAnalysis] = []
     errors: list[AnalysisError] = []
 
-    for py_file in py_files:
+    for index, py_file in enumerate(py_files, start=1):
+        if on_progress:
+            try:
+                rel = str(py_file.relative_to(project_root))
+            except ValueError:
+                rel = str(py_file)
+            on_progress(
+                "analyzing_file",
+                {"file": rel.replace("\\", "/"), "index": index, "total": len(py_files)},
+            )
         try:
             analysis, file_errors = analyze_file(
                 py_file, project_root, max_file_size=config.max_file_size
@@ -244,6 +263,7 @@ def analyze_project(
     exclude_dirs: set[str] | None = None,
     exclude_patterns: list[str] | None = None,
     max_file_size: int | None = None,
+    on_progress: ProgressCallback | None = None,
 ) -> list[Finding]:
     """Public API: analyze a project and return diagnostic and leak findings."""
     project = analyze_project_structure(
@@ -251,7 +271,18 @@ def analyze_project(
         exclude_dirs=exclude_dirs,
         exclude_patterns=exclude_patterns,
         max_file_size=max_file_size,
+        on_progress=on_progress,
     )
     findings = _errors_to_findings(project.errors)
-    findings.extend(lifecycle_findings(project, build_cfg(project)))
+
+    if on_progress:
+        on_progress("building_cfg", {"files": len(project.file_analyses)})
+    cfg = build_cfg(project)
+
+    if on_progress:
+        on_progress("lifecycle_analysis", {})
+    findings.extend(lifecycle_findings(project, cfg))
+
+    if on_progress:
+        on_progress("analysis_complete", {"findings": len(findings)})
     return findings
