@@ -311,6 +311,7 @@ def report_run_to_backend(
 
     Best-effort only: a backend outage or misconfigured URL must never fail CI.
     """
+    report_url = report_url.strip()
     if not report_url:
         return False
 
