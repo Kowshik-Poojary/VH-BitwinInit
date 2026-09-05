@@ -1,0 +1,72 @@
+### PR → Dashboard test requests
+### Requires the VS Code "REST Client" extension (or any .http-compatible client).
+### Click "Send Request" above each ### block to run it.
+
+@baseUrl = https://vh-bitwininit.onrender.com
+# @baseUrl = http://localhost:8000
+
+### 1. Report PR #1 (alice) — introduces leak A
+POST {{baseUrl}}/api/reports/action-run
+Content-Type: application/json
+
+{
+  "repo": "test/pr-check",
+  "pr_number": 1,
+  "user_id": "alice",
+  "conclusion": "fail",
+  "summary": { "total": 1, "errors": 1, "warnings": 0, "info": 0 },
+  "findings": [
+    {
+      "rule_id": "LKG-R001",
+      "severity": "ERROR",
+      "message": "leak A",
+      "location": { "file": "a.py", "line": 10, "column": 0 },
+      "details": {}
+    }
+  ]
+}
+
+### 2. Report PR #2 (bob) — same leak A, should show as pre-existing
+POST {{baseUrl}}/api/reports/action-run
+Content-Type: application/json
+
+{
+  "repo": "test/pr-check",
+  "pr_number": 2,
+  "user_id": "bob",
+  "conclusion": "fail",
+  "summary": { "total": 1, "errors": 1, "warnings": 0, "info": 0 },
+  "findings": [
+    {
+      "rule_id": "LKG-R001",
+      "severity": "ERROR",
+      "message": "leak A",
+      "location": { "file": "a.py", "line": 10, "column": 0 },
+      "details": {}
+    }
+  ]
+}
+
+### 3. List PRs reported for this repo
+GET {{baseUrl}}/api/admin/repos/test%2Fpr-check/prs
+
+### 4. PR #1 issues — expect is_new: true, first_seen_user alice
+GET {{baseUrl}}/api/admin/repos/test%2Fpr-check/prs/1/issues
+
+### 5. PR #2 issues — expect is_new: false, first_seen_user alice (even though bob's run reported it)
+GET {{baseUrl}}/api/admin/repos/test%2Fpr-check/prs/2/issues
+
+### 6. PR #1 run log
+GET {{baseUrl}}/api/admin/repos/test%2Fpr-check/prs/1/logs
+
+### 7. PR #2 run log
+GET {{baseUrl}}/api/admin/repos/test%2Fpr-check/prs/2/logs
+
+### 8. Full repo run log (PR + push runs mixed)
+GET {{baseUrl}}/api/admin/repos/test%2Fpr-check/logs
+
+### 9. Repo-wide "current issues" (from whichever run reported last, PR or push)
+GET {{baseUrl}}/api/admin/repos/test%2Fpr-check/issues
+
+### 10. Global dashboard overview
+GET {{baseUrl}}/api/admin/overview
