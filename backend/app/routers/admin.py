@@ -112,7 +112,10 @@ def recent(limit: int = 20) -> list[dict]:
 
 @router.get("/users")
 def users() -> list[dict]:
-    return list(get_db()["users"].find())
+    docs = list(get_db()["users"].find())
+    for doc in docs:
+        doc["_id"] = str(doc["_id"])
+    return docs
 
 
 @router.get("/repos/{repo:path}/prs/{pr_number:int}/logs")

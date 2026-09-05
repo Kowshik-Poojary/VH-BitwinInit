@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: bitwin/leakguard-backend:latest
+    restart: unless-stopped
+    environment:
+      # MongoDB Atlas connection string. See .env.example for the format.
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      LEAKGUARD_INGEST_TOKEN: ${LEAKGUARD_INGEST_TOKEN}
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: bitwin/leakguard-frontend:latest
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      API_BASE: ${API_BASE}
+    ports:
+      - "8080:80"

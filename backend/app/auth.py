@@ -18,56 +18,61 @@ from fastapi import Depends, Header, HTTPException, Query
 from app.db import get_db
 from app.security import hash_password, verify_password
 
-JWT_SECRET = os.environ.get("JWT_SECRET", "dev-secret-change-me")
+def _require_jwt_secret() -> str:
+    secret = os.environ.get("JWT_SECRET")
+    if secret:
+        return secret
+    if os.environ.get("LEAKGUARD_DEV") == "1":
+        return "dev-secret-change-me"
+    raise RuntimeError(
+        "JWT_SECRET environment variable is not set. "
+        "Set it to a long random string (e.g. `openssl rand -hex 32`), "
+        "or set LEAKGUARD_DEV=1 for local development."
+    )
+
+
+JWT_SECRET = _require_jwt_secret()
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRES_HOURS = 12
-
-DEFAULT_ADMIN = {"username": "admin", "password": "admin123"}
-DEFAULT_USERS = [
-    {"username": "koshik", "password": "koshik123"},
-    {"username": "nick", "password": "nick123"},
-    {"username": "vinayak", "password": "vinayak123"},
-    {"username": "rohit", "password": "rohit123"},
-]
 
 
 def _accounts():
     return get_db()["accounts"]
 
 
-def seed_default_accounts() -> None:
-    """Idempotently creates the one admin and its default developers."""
-    accounts = _accounts()
-    admin = accounts.find_one({"role": "admin"})
-    if not admin:
-        accounts.update_one(
-            {"_id": DEFAULT_ADMIN["username"]},
-            {
-                "$set": {
-                    "username": DEFAULT_ADMIN["username"],
-                    "password_hash": hash_password(DEFAULT_ADMIN["password"]),
-                    "role": "admin",
-                    "admin_id": None,
-                }
-            },
-            upsert=True,
-        )
-        admin = accounts.find_one({"_id": DEFAULT_ADMIN["username"]})
+def bootstrap_admin() -> None:
+    """Create the single admin account from env vars on first boot.
 
-    admin_id = admin["_id"]
-    for user in DEFAULT_USERS:
-        accounts.update_one(
-            {"_id": user["username"]},
-            {
-                "$setOnInsert": {
-                    "username": user["username"],
-                    "password_hash": hash_password(user["password"]),
-                    "role": "user",
-                    "admin_id": admin_id,
-                }
-            },
-            upsert=True,
+    Idempotent: if an admin already exists in Mongo, does nothing. Otherwise
+    reads ADMIN_USERNAME / ADMIN_PASSWORD from the environment and inserts
+    the admin. Fails loudly if neither an admin exists nor the env vars are
+    set, so a fresh deployment never boots without any way to log in.
+    """
+    accounts = _accounts()
+    if accounts.find_one({"role": "admin"}):
+        return
+
+    username = os.environ.get("ADMIN_USERNAME")
+    password = os.environ.get("ADMIN_PASSWORD")
+    if not username or not password:
+        raise RuntimeError(
+            "No admin account exists yet. Set ADMIN_USERNAME and "
+            "ADMIN_PASSWORD environment variables so the first-run admin "
+            "can be created."
         )
+
+    accounts.update_one(
+        {"_id": username},
+        {
+            "$set": {
+                "username": username,
+                "password_hash": hash_password(password),
+                "role": "admin",
+                "admin_id": None,
+            }
+        },
+        upsert=True,
+    )
 
 
 def create_user(admin_id: str, username: str, password: str) -> dict:

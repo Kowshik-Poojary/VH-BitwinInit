@@ -34,6 +34,10 @@ inputs:
     description: "Base URL of a LeakGuard web backend to report this run's summary to, for the admin dashboard. Leave empty to skip."
     required: false
     default: ""
+  report-token:
+    description: "Shared-secret token the backend expects on the ingest endpoint. Store as a GitHub Actions secret and pass in via secrets.LEAKGUARD_TOKEN."
+    required: false
+    default: ""
 
 runs:
   using: "docker"
@@ -51,4 +55,6 @@ runs:
     - "${{ inputs.min-confidence }}"
     - "--report-url"
     - "${{ inputs.report-url }}"
+    - "--report-token"
+    - "${{ inputs.report-token }}"
     - "--comment-pr"

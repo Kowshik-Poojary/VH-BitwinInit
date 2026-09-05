@@ -2,19 +2,34 @@
 
 from __future__ import annotations
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.auth import seed_default_accounts
+from app.auth import bootstrap_admin
 from app.routers import admin, auth, reports, scan
+
+
+def _cors_origins() -> list[str]:
+    raw = os.environ.get("CORS_ORIGINS", "").strip()
+    if raw:
+        return [o.strip() for o in raw.split(",") if o.strip()]
+    if os.environ.get("LEAKGUARD_DEV") == "1":
+        return ["*"]
+    raise RuntimeError(
+        "CORS_ORIGINS environment variable is not set. "
+        "Set it to a comma-separated list of allowed frontend origins "
+        "(e.g. `http://localhost:8080,https://leakguard.mycorp.internal`), "
+        "or set LEAKGUARD_DEV=1 for local development."
+    )
+
 
 app = FastAPI(title="LeakGuard Backend")
 
-# MVP: wide open CORS. Auth is a basic JWT scheme layered on top, tighten
-# this before any real deployment.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins(),
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -26,8 +41,8 @@ app.include_router(admin.router)
 
 
 @app.on_event("startup")
-def _seed_accounts() -> None:
-    seed_default_accounts()
+def _bootstrap_admin() -> None:
+    bootstrap_admin()
 
 
 @app.get("/health")

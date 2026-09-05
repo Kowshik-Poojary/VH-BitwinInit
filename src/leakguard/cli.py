@@ -54,6 +54,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Base URL of the LeakGuard web backend to report this run's summary to (admin dashboard)",
     )
     scan_parser.add_argument(
+        "--report-token",
+        type=str,
+        default=os.environ.get("LEAKGUARD_INGEST_TOKEN", ""),
+        help="Shared-secret token sent as X-LeakGuard-Token when posting to --report-url",
+    )
+    scan_parser.add_argument(
         "--max-loops",
         default="x",
         help="Upper limit of loop iterations to traverse during leak analysis (default: 'x')",
@@ -145,7 +151,9 @@ def _run_scan(args: argparse.Namespace) -> int:
     is_blocked = any(finding.severity.value in blocking for finding in findings)
 
     if args.report_url:
-        report_run_to_backend(findings, args.report_url, is_blocked)
+        report_run_to_backend(
+            findings, args.report_url, is_blocked, report_token=args.report_token or None
+        )
 
     return 1 if is_blocked else 0
 

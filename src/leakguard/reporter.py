@@ -306,6 +306,7 @@ def report_run_to_backend(
     findings: list[Finding],
     report_url: str,
     blocked: bool,
+    report_token: str | None = None,
 ) -> bool:
     """POST a summary of this run to the LeakGuard web backend's admin dashboard.
 
@@ -342,10 +343,15 @@ def report_run_to_backend(
             "findings": findings_payload,
         }
 
+        headers = {"Content-Type": "application/json"}
+        token = report_token or os.environ.get("LEAKGUARD_INGEST_TOKEN")
+        if token:
+            headers["X-LeakGuard-Token"] = token
+
         req = urllib.request.Request(
             report_url.rstrip("/") + "/api/reports/action-run",
             data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
+            headers=headers,
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=10) as resp:

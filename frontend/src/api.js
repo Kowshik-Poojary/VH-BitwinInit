@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+const API_BASE =
+  (typeof window !== "undefined" && window.__LG_API_BASE__) ||
+  import.meta.env.VITE_API_BASE ||
+  "http://localhost:8000";
 
 export function getToken() {
   return localStorage.getItem("lg_token");
