@@ -94,21 +94,6 @@ def users() -> list[dict]:
     return list(get_db()["users"].find())
 
 
-@router.get("/repos/{repo:path}/logs")
-def repo_logs(repo: str) -> list[dict]:
-    return get_repo_logs(repo)
-
-
-@router.get("/repos/{repo:path}/issues")
-def repo_issues(repo: str) -> dict:
-    return get_repo_issues(repo)
-
-
-@router.get("/repos/{repo:path}/prs")
-def repo_prs(repo: str) -> list[dict]:
-    return get_repo_prs(repo)
-
-
 @router.get("/repos/{repo:path}/prs/{pr_number:int}/logs")
 def pr_logs(repo: str, pr_number: int) -> list[dict]:
     return get_pr_logs(repo, pr_number)
@@ -117,3 +102,18 @@ def pr_logs(repo: str, pr_number: int) -> list[dict]:
 @router.get("/repos/{repo:path}/prs/{pr_number:int}/issues")
 def pr_issues(repo: str, pr_number: int) -> dict:
     return get_pr_issues(repo, pr_number)
+
+
+@router.get("/repos/{repo:path}/prs")
+def repo_prs(repo: str) -> list[dict]:
+    return get_repo_prs(repo)
+
+
+@router.get("/repos/{repo:path}/logs")
+def repo_logs(repo: str) -> list[dict]:
+    return get_repo_logs(repo)
+
+
+@router.get("/repos/{repo:path}/issues")
+def repo_issues(repo: str) -> dict:
+    return get_repo_issues(repo)
